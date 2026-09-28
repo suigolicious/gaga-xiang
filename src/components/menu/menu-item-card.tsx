@@ -38,7 +38,7 @@ export function MenuItemCard({
           {item.description[language]}
         </ThemedText>
         <View style={styles.footer}>
-          <ThemedText type="smallBold">{formatPrice(item.priceCents, language)}</ThemedText>
+          <ThemedText type="smallBold">{formatPrice(item.priceCents)}</ThemedText>
           <QuantityStepper
             quantity={quantity}
             canIncrement={canIncrement}

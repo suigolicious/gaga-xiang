@@ -21,7 +21,6 @@ const LOW_CAPACITY_THRESHOLD = 20;
 
 export default function MenuScreen() {
   const { t } = useTranslation();
-  const { language } = useLanguage();
   const now = useNow();
   const window = now && getOrderingWindow(now);
 
@@ -63,7 +62,7 @@ export default function MenuScreen() {
           <CartSummaryBar
             label={t('menu.summary', {
               count: cartCount,
-              total: formatPrice(cartTotal, language),
+              total: formatPrice(cartTotal),
             })}
           />
         )}

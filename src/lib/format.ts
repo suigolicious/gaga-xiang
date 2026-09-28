@@ -6,13 +6,17 @@ const IntlLocales: Record<Language, string> = {
   'zh-Hans': 'zh-CN',
 };
 
-export function formatPrice(cents: number, language: Language) {
-  return new Intl.NumberFormat(IntlLocales[language], {
-    style: 'currency',
-    currency: 'USD',
-    // Customers are all in the US, so show "$16.00" rather than "US$16.00" in Chinese.
-    currencyDisplay: 'narrowSymbol',
-  }).format(cents / 100);
+const dollars = new Intl.NumberFormat('en-US', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+/**
+ * "$16.00" in every language. Prices are always US dollars, and a Chinese currency
+ * format would show "US$16.00" (Hermes ignores `currencyDisplay: 'narrowSymbol'`).
+ */
+export function formatPrice(cents: number) {
+  return `$${dollars.format(cents / 100)}`;
 }
 
 /** e.g. "Tuesday, September 29" or "9月29日星期二". */
