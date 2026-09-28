@@ -22,7 +22,7 @@ commit history matter.
 ## Languages
 - The whole app (customer and admin) is available in English and Simplified Chinese
 - Defaults to the phone's language: any Chinese setting gets Simplified Chinese, anything else English
-- A language toggle (Phone setting / English / 简体中文) on the customer Account screen and the admin home; the choice is remembered
+- A language toggle between English and 简体中文 on the customer Account screen and the admin home. The phone's language is selected until the user picks one; the choice is remembered
 - Menu items (dish names and descriptions) are NOT translated. I enter them myself for accuracy
 - Every new piece of UI text needs both an English and a Simplified Chinese string (`src/i18n/locales/`)
 

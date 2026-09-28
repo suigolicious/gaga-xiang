@@ -32,7 +32,6 @@ const en = {
   },
   language: {
     label: 'Language',
-    system: 'Phone setting',
   },
   admin: {
     title: 'Admin',

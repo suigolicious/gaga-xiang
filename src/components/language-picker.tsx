@@ -5,32 +5,30 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Radius, Spacing } from '@/constants/theme';
 import { LanguageNames, Languages } from '@/i18n';
-import { useLanguagePreference, type LanguagePreference } from '@/i18n/language-provider';
+import { useLanguage } from '@/i18n/language-provider';
 
-/** Segmented control: follow the phone's language, or pick one explicitly. */
+/**
+ * Toggle between the app's languages. The one the app is currently shown in is
+ * selected — the phone's language until the user picks one.
+ */
 export function LanguagePicker() {
   const { t } = useTranslation();
-  const { preference, setPreference } = useLanguagePreference();
-
-  const options: { value: LanguagePreference; label: string }[] = [
-    { value: 'system', label: t('language.system') },
-    ...Languages.map((language) => ({ value: language, label: LanguageNames[language] })),
-  ];
+  const { language: current, setLanguage } = useLanguage();
 
   return (
     <View style={styles.container}>
       <ThemedText type="smallBold" themeColor="textSecondary">
         {t('language.label')}
       </ThemedText>
-      <ThemedView type="backgroundElement" style={styles.segments} accessibilityRole="radiogroup">
-        {options.map((option) => {
-          const selected = option.value === preference;
+      <ThemedView type="backgroundElement" style={styles.segments} role="radiogroup">
+        {Languages.map((language) => {
+          const selected = language === current;
           return (
             <Pressable
-              key={option.value}
-              onPress={() => setPreference(option.value)}
-              accessibilityRole="radio"
-              accessibilityState={{ checked: selected }}
+              key={language}
+              onPress={() => setLanguage(language)}
+              role="radio"
+              aria-checked={selected}
               style={styles.segmentPressable}>
               <ThemedView
                 type={selected ? 'backgroundSelected' : 'backgroundElement'}
@@ -38,7 +36,7 @@ export function LanguagePicker() {
                 <ThemedText
                   type={selected ? 'smallBold' : 'small'}
                   themeColor={selected ? 'text' : 'textSecondary'}>
-                  {option.label}
+                  {LanguageNames[language]}
                 </ThemedText>
               </ThemedView>
             </Pressable>
