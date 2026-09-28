@@ -1,10 +1,13 @@
+import { useTranslation } from 'react-i18next';
+
 import { PlaceholderScreen } from '@/components/placeholder-screen';
 
 export default function AdminOrdersScreen() {
+  const { t } = useTranslation();
   return (
     <PlaceholderScreen
-      title="Orders"
-      description="Manage orders and issue refunds."
+      title={t('admin.orders.title')}
+      description={t('admin.orders.description')}
     />
   );
 }
