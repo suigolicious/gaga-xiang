@@ -16,7 +16,8 @@ const en = {
     title: "Tomorrow's menu",
     delivery: 'Delivered {{date}}, around 7am',
     orderBy: 'Order by 2PM today',
-    closed: "Orders for {{date}} have closed. Tomorrow's menu opens at midnight.",
+    closed:
+      'Orders for {{date}} have closed. You can still fill your cart and check out after midnight.',
     left_one: '{{count}} dish left for tomorrow',
     left_other: '{{count}} dishes left for tomorrow',
     soldOut: 'Sold out for tomorrow',

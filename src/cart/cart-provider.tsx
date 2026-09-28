@@ -44,7 +44,8 @@ const CartContext = createContext<CartContextValue | null>(null);
 /**
  * The customer's cart, plus the ordering rules that decide whether they can add
  * to it or check out. The cart is saved on the device and kept across days; it
- * applies to whichever delivery day is open. The server re-checks everything at checkout.
+ * applies to whichever delivery day is open. Customers can keep editing it after the
+ * cutoff and check out once ordering reopens. The server re-checks everything at checkout.
  */
 export function CartProvider({ children }: PropsWithChildren) {
   const now = useNow();
@@ -85,9 +86,11 @@ export function CartProvider({ children }: PropsWithChildren) {
   const taxCents = salesTaxCents(subtotalCents);
 
   const isOpen = window?.isOpen ?? false;
-  // The daily cap covers every customer's order for the day.
-  const remaining = DailyDishCap - FakeOrderedCount - count;
-  const canAdd = isOpen && remaining > 0;
+  // The daily cap covers every customer's order for the day. After the cutoff the cart
+  // is for the following delivery, which nobody can have ordered for yet.
+  const orderedByOthers = isOpen ? FakeOrderedCount : 0;
+  const remaining = DailyDishCap - orderedByOthers - count;
+  const canAdd = remaining > 0;
 
   const change = (id: string, delta: number) => {
     if (delta > 0 && !canAdd) return;

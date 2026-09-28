@@ -41,7 +41,7 @@ export default function MenuScreen() {
             />
           )}
         />
-        {cart.isOpen && cart.count > 0 && (
+        {cart.count > 0 && (
           <CartSummaryBar
             label={t('menu.summary', {
               count: cart.count,
