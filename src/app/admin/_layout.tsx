@@ -1,19 +1,17 @@
-import { Link, Stack } from 'expo-router';
+import { Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet } from 'react-native';
 
-import { ThemedText } from '@/components/themed-text';
+import { TextLink } from '@/components/text-link';
 import { Spacing } from '@/constants/theme';
 
 /** Dev-only shortcut back to the customer app, mirroring the admin link on Account. */
 function CustomerAppLink() {
   const { t } = useTranslation();
   return (
-    <Link href="/" dismissTo>
-      <ThemedText type="linkPrimary" style={styles.link}>
-        {t('admin.customerApp')}
-      </ThemedText>
-    </Link>
+    <TextLink href="/" dismissTo style={styles.link}>
+      {t('admin.customerApp')}
+    </TextLink>
   );
 }
 
