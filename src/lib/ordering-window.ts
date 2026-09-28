@@ -40,8 +40,3 @@ export function getOrderingWindow(now: Date): OrderingWindow {
     isOpen: parts.hour < OrderCutoffHour,
   };
 }
-
-/** A stable key for a calendar date, e.g. "2026-09-29". */
-export function toDateKey({ year, month, day }: CalendarDate) {
-  return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-}

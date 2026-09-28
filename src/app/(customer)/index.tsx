@@ -45,7 +45,7 @@ export default function MenuScreen() {
           <CartSummaryBar
             label={t('menu.summary', {
               count: cart.count,
-              total: formatPrice(cart.totalCents),
+              total: formatPrice(cart.subtotalCents),
             })}
           />
         )}

@@ -12,6 +12,7 @@ import { MaxContentWidth, Radius, Spacing, TopTabInset } from '@/constants/theme
 import { useTheme } from '@/hooks/use-theme';
 import { useLanguage } from '@/i18n/language-provider';
 import { formatCalendarDate, formatPrice } from '@/lib/format';
+import { SalesTaxPercent } from '@/lib/tax';
 
 export default function CartScreen() {
   const { t } = useTranslation();
@@ -44,35 +45,56 @@ export default function CartScreen() {
               {cart.window?.isOpen && (
                 <ThemedText themeColor="textSecondary">{t('menu.delivery', { date })}</ThemedText>
               )}
-              {cart.window && !cart.isOpen && (
-                <ThemedView type="backgroundSelected" style={styles.status}>
-                  <ThemedText type="smallBold" style={{ color: theme.tint }}>
-                    {t('menu.closed', { date })}
-                  </ThemedText>
-                </ThemedView>
-              )}
             </View>
           }
           renderItem={({ item: line }) => <CartLineRow line={line} />}
         />
 
         <View style={styles.checkout}>
-          <View style={styles.totalRow}>
-            <ThemedText type="smallBold">{t('cart.total')}</ThemedText>
-            <ThemedText type="smallBold">{formatPrice(cart.totalCents)}</ThemedText>
+          <View style={styles.totals}>
+            <View style={styles.totalRow}>
+              <ThemedText type="small" themeColor="textSecondary">
+                {t('cart.subtotal')}
+              </ThemedText>
+              <ThemedText type="small" themeColor="textSecondary">
+                {formatPrice(cart.subtotalCents)}
+              </ThemedText>
+            </View>
+            <View style={styles.totalRow}>
+              <ThemedText type="small" themeColor="textSecondary">
+                {t('cart.tax', { rate: SalesTaxPercent })}
+              </ThemedText>
+              <ThemedText type="small" themeColor="textSecondary">
+                {formatPrice(cart.taxCents)}
+              </ThemedText>
+            </View>
+            <View style={styles.totalRow}>
+              <ThemedText type="smallBold">{t('cart.total')}</ThemedText>
+              <ThemedText type="smallBold">{formatPrice(cart.totalCents)}</ThemedText>
+            </View>
           </View>
-          {/* Payment comes with the backend; an order is only confirmed once the server verifies it. */}
+          {/* Grayed out after the cutoff (with the reason), and until payment exists: an order is
+              only confirmed once the server verifies payment. */}
           <Pressable
             disabled
             role="button"
             aria-disabled
-            style={[styles.checkoutButton, styles.disabled, { backgroundColor: theme.primary }]}>
-            <ThemedText type="smallBold" style={{ color: theme.onPrimary }}>
+            style={[
+              styles.checkoutButton,
+              cart.isOpen
+                ? [styles.disabled, { backgroundColor: theme.primary }]
+                : { backgroundColor: theme.backgroundSelected },
+            ]}>
+            <ThemedText
+              type="smallBold"
+              style={{ color: cart.isOpen ? theme.onPrimary : theme.textSecondary }}>
               {t('cart.checkout')}
             </ThemedText>
           </Pressable>
           <ThemedText type="small" themeColor="textSecondary" style={styles.note}>
-            {t('cart.paymentSoon')}
+            {cart.window && !cart.isOpen
+              ? t('cart.closedCheckout', { date })
+              : t('cart.paymentSoon')}
           </ThemedText>
         </View>
       </SafeAreaView>
@@ -135,12 +157,6 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.two,
     paddingBottom: Spacing.one,
   },
-  status: {
-    alignSelf: 'flex-start',
-    paddingVertical: Spacing.two,
-    paddingHorizontal: Spacing.three,
-    borderRadius: Radius.large,
-  },
   row: {
     flexDirection: 'row',
     padding: Spacing.three,
@@ -164,6 +180,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three,
     paddingBottom: Spacing.three,
     gap: Spacing.two,
+  },
+  totals: {
+    gap: Spacing.one,
   },
   totalRow: {
     flexDirection: 'row',

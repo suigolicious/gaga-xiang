@@ -33,9 +33,13 @@ const en = {
     empty: 'Your cart is empty',
     browse: "Browse tomorrow's menu",
     each: '{{price}} each',
+    subtotal: 'Subtotal',
+    tax: 'Tax ({{rate}}%)',
     total: 'Total',
     checkout: 'Checkout',
     paymentSoon: "Payment isn't set up yet.",
+    closedCheckout:
+      'Ordering for {{date}} closed at 2PM. Your cart is saved, and you can check out after midnight for the next delivery.',
   },
   orders: {
     title: 'Your orders',

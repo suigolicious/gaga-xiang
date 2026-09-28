@@ -12,3 +12,11 @@ export const OrderCutoffHour = 14;
 
 /** The kitchen can make at most this many dishes per delivery day. */
 export const DailyDishCap = 100;
+
+/**
+ * Sales tax on orders, in basis points (700 = 7.00%): North Carolina 4.75% plus
+ * Forsyth County 2.25%, for delivery from Clemmons, NC. Prepared food is taxed at
+ * the full rate. Source: NCDOR current sales and use tax rates (checked 2026-09-28).
+ * Doesn't include any local prepared-meals tax; confirm none applies.
+ */
+export const SalesTaxBasisPoints = 700;
