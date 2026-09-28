@@ -35,7 +35,7 @@ export function MenuItemCard({
       <View style={styles.details}>
         <ThemedText type="smallBold">{item.name}</ThemedText>
         <ThemedText type="small" themeColor="textSecondary" numberOfLines={2}>
-          {item.description}
+          {item.description[language]}
         </ThemedText>
         <View style={styles.footer}>
           <ThemedText type="smallBold">{formatPrice(item.priceCents, language)}</ThemedText>
