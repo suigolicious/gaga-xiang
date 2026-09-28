@@ -11,7 +11,7 @@ const zhHans: Translations = {
   menu: {
     title: '明日菜单',
     delivery: '{{date}} 早上 7 点左右送达',
-    orderBy: '请在今天下午 2 点（纽约时间）前下单',
+    orderBy: '请在今天下午 2 点前下单',
     closed: '{{date}} 的订单已截止。明日菜单将于午夜开放。',
     // Chinese has no plural forms; both keys exist to match the English shape.
     left_one: '明日仅剩 {{count}} 份',

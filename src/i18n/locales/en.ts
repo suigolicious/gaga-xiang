@@ -15,7 +15,7 @@ const en = {
   menu: {
     title: "Tomorrow's menu",
     delivery: 'Delivered {{date}}, around 7am',
-    orderBy: 'Order by 2PM today (New York time)',
+    orderBy: 'Order by 2PM today',
     closed: "Orders for {{date}} have closed. Tomorrow's menu opens at midnight.",
     left_one: 'Only {{count}} dish left for tomorrow',
     left_other: 'Only {{count}} dishes left for tomorrow',
