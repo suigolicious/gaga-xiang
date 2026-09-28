@@ -14,8 +14,8 @@ const zhHans: Translations = {
     orderBy: '请在今天下午 2 点前下单',
     closed: '{{date}} 的订单已截止。明日菜单将于午夜开放。',
     // Chinese has no plural forms; both keys exist to match the English shape.
-    left_one: '明日仅剩 {{count}} 份',
-    left_other: '明日仅剩 {{count}} 份',
+    left_one: '明日还剩 {{count}} 份',
+    left_other: '明日还剩 {{count}} 份',
     soldOut: '明日已售罄',
     lastInCart: '明日最后几份已在你的购物车中',
     add: '添加{{name}}',
