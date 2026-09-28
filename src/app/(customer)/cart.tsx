@@ -112,10 +112,8 @@ function CartLineRow({ line }: { line: CartLine }) {
       <DishImage item={item} size={56} />
       <View style={styles.rowDetails}>
         <ThemedText type="smallBold">{item.name}</ThemedText>
-        <ThemedText type="small" themeColor="textSecondary">
-          {t('cart.each', { price: formatPrice(item.priceCents) })}
-        </ThemedText>
         <View style={styles.rowFooter}>
+          <ThemedText type="smallBold">{formatPrice(item.priceCents)}</ThemedText>
           <QuantityStepper
             quantity={quantity}
             canIncrement={cart.canAdd}
@@ -125,7 +123,6 @@ function CartLineRow({ line }: { line: CartLine }) {
             removeLabel={t('menu.remove', { name: item.name })}
             quantityLabel={t('menu.quantity', { count: quantity })}
           />
-          <ThemedText type="smallBold">{formatPrice(item.priceCents * quantity)}</ThemedText>
         </View>
       </View>
     </ThemedView>

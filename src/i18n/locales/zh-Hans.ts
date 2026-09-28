@@ -29,7 +29,6 @@ const zhHans: Translations = {
     title: '购物车',
     empty: '购物车是空的',
     browse: '浏览明日菜单',
-    each: '{{price}} / 份',
     subtotal: '小计',
     tax: '税费（{{rate}}%）',
     total: '合计',

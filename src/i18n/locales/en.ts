@@ -33,7 +33,6 @@ const en = {
     title: 'Cart',
     empty: 'Your cart is empty',
     browse: "Browse tomorrow's menu",
-    each: '{{price}} each',
     subtotal: 'Subtotal',
     tax: 'Tax ({{rate}}%)',
     total: 'Total',
