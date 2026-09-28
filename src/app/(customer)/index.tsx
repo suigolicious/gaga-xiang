@@ -1,42 +1,25 @@
 import { router } from 'expo-router';
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useCart } from '@/cart/cart-provider';
 import { MenuItemCard } from '@/components/menu/menu-item-card';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { DailyDishCap } from '@/constants/business';
 import { MaxContentWidth, Radius, Spacing, TopTabInset } from '@/constants/theme';
-import { FakeMenu, FakeOrderedCount } from '@/data/fake-menu';
-import { useNow } from '@/hooks/use-now';
+import { FakeMenu } from '@/data/fake-menu';
 import { useTheme } from '@/hooks/use-theme';
 import { useLanguage } from '@/i18n/language-provider';
 import { formatCalendarDate, formatPrice } from '@/lib/format';
-import { getOrderingWindow, type OrderingWindow } from '@/lib/ordering-window';
+import type { OrderingWindow } from '@/lib/ordering-window';
 
 /** Show the "only N left" warning once remaining capacity drops to this. */
 const LOW_CAPACITY_THRESHOLD = 20;
 
 export default function MenuScreen() {
   const { t } = useTranslation();
-  const now = useNow();
-  const window = now && getOrderingWindow(now);
-
-  // Local for now; moves to a shared cart when the Cart screen is built.
-  const [quantities, setQuantities] = useState<Record<string, number>>({});
-  const changeQuantity = (id: string, delta: number) =>
-    setQuantities((current) => ({ ...current, [id]: Math.max(0, (current[id] ?? 0) + delta) }));
-
-  const cartCount = Object.values(quantities).reduce((sum, quantity) => sum + quantity, 0);
-  const cartTotal = FakeMenu.reduce(
-    (sum, item) => sum + item.priceCents * (quantities[item.id] ?? 0),
-    0,
-  );
-  // The cap covers every customer's order for the day. The server re-checks this at checkout.
-  const remaining = DailyDishCap - FakeOrderedCount - cartCount;
-  const isOpen = window?.isOpen ?? false;
+  const cart = useCart();
 
   return (
     <ThemedView style={styles.container}>
@@ -46,23 +29,23 @@ export default function MenuScreen() {
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.list}
           ListHeaderComponent={
-            <MenuHeader window={window} remaining={remaining} cartCount={cartCount} />
+            <MenuHeader window={cart.window} remaining={cart.remaining} cartCount={cart.count} />
           }
           renderItem={({ item }) => (
             <MenuItemCard
               item={item}
-              quantity={quantities[item.id] ?? 0}
-              canIncrement={isOpen && remaining > 0}
-              onIncrement={() => changeQuantity(item.id, 1)}
-              onDecrement={() => changeQuantity(item.id, -1)}
+              quantity={cart.quantityOf(item.id)}
+              canIncrement={cart.canAdd}
+              onIncrement={() => cart.increment(item.id)}
+              onDecrement={() => cart.decrement(item.id)}
             />
           )}
         />
-        {isOpen && cartCount > 0 && (
+        {cart.isOpen && cart.count > 0 && (
           <CartSummaryBar
             label={t('menu.summary', {
-              count: cartCount,
-              total: formatPrice(cartTotal),
+              count: cart.count,
+              total: formatPrice(cart.totalCents),
             })}
           />
         )}

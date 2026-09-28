@@ -55,22 +55,25 @@ export function MenuItemCard({
 }
 
 /** The dish photo, or its first character on brand red until a photo is added. */
-function DishImage({ item }: { item: MenuItem }) {
+export function DishImage({ item, size = 88 }: { item: MenuItem; size?: number }) {
   const theme = useTheme();
+  const box = { width: size, height: size };
 
   if (item.imageUrl) {
-    return <Image source={item.imageUrl} style={styles.image} contentFit="cover" />;
+    return <Image source={item.imageUrl} style={[styles.image, box]} contentFit="cover" />;
   }
   return (
-    <View style={[styles.image, styles.placeholder, { backgroundColor: theme.primary }]}>
-      <ThemedText style={[styles.placeholderText, { color: theme.onPrimary }]}>
+    <View style={[styles.image, styles.placeholder, box, { backgroundColor: theme.primary }]}>
+      <ThemedText
+        style={[
+          styles.placeholderText,
+          { color: theme.onPrimary, fontSize: size * 0.4, lineHeight: size * 0.5 },
+        ]}>
         {item.name.charAt(0)}
       </ThemedText>
     </View>
   );
 }
-
-const IMAGE_SIZE = 88;
 
 const styles = StyleSheet.create({
   card: {
@@ -80,8 +83,6 @@ const styles = StyleSheet.create({
     borderRadius: Radius.large,
   },
   image: {
-    width: IMAGE_SIZE,
-    height: IMAGE_SIZE,
     borderRadius: Radius.medium,
   },
   placeholder: {
@@ -89,8 +90,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   placeholderText: {
-    fontSize: 36,
-    lineHeight: 44,
     fontWeight: 700,
   },
   details: {

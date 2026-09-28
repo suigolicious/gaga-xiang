@@ -27,7 +27,12 @@ const zhHans: Translations = {
   },
   cart: {
     title: '购物车',
-    description: '查看明天的订单，并在截止时间前完成付款。',
+    empty: '购物车是空的',
+    browse: '浏览明日菜单',
+    each: '{{price}} / 份',
+    total: '合计',
+    checkout: '去结算',
+    paymentSoon: '付款功能尚未开通。',
   },
   orders: {
     title: '我的订单',

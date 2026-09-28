@@ -30,7 +30,12 @@ const en = {
   },
   cart: {
     title: 'Cart',
-    description: 'Review your order for tomorrow and pay before the cutoff.',
+    empty: 'Your cart is empty',
+    browse: "Browse tomorrow's menu",
+    each: '{{price}} each',
+    total: 'Total',
+    checkout: 'Checkout',
+    paymentSoon: "Payment isn't set up yet.",
   },
   orders: {
     title: 'Your orders',
