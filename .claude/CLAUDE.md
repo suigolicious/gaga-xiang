@@ -41,7 +41,7 @@ commit history matter.
 
 ## Structure (planned)
 - `src/app/(customer)/`: customer-facing screens
-- `src/app/(admin)/`: admin screens, gated by user role (primarily used on web/tablet)
+- `src/app/admin/`: admin screens under `/admin/...`, gated by user role (primarily used on web/tablet). A real URL segment rather than an `(admin)` group, since groups don't add to the URL and admin routes like `orders` would clash with the customer ones.
 
 ## Open decisions
 - Backend/auth: considering Supabase (Postgres + auth + server functions)
