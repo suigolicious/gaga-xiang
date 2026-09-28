@@ -10,8 +10,10 @@ commit history matter.
 
 ## How the business works
 - Customers place orders the day before delivery with a cutoff time of 2PM New York time all year
+- After the cutoff, ordering is closed until midnight; customers can't order for two days out instead
+- Delivery happens every day, including weekends
 - Family cooks in a shared kitchen space every morning (4-hour window)
-- All orders are delivered at once in the morning (target: ~7am)
+- All orders are delivered at once in the morning (target: ~7am; customers see "around 7am")
 - Kitchen time limits how much can be made each day - 100 dishes cap
 
 ## Platforms & distribution
