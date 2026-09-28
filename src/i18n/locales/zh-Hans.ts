@@ -10,7 +10,20 @@ const zhHans: Translations = {
   },
   menu: {
     title: '明日菜单',
-    description: '浏览下一个配送日的菜品。订单截止时间为配送前一天纽约时间下午 2 点。',
+    delivery: '{{date}} 早上 7 点左右送达',
+    orderBy: '请在今天下午 2 点前下单',
+    closed: '{{date}} 的订单已截止。明日菜单将于午夜开放。',
+    // Chinese has no plural forms; both keys exist to match the English shape.
+    left_one: '明日还剩 {{count}} 份',
+    left_other: '明日还剩 {{count}} 份',
+    soldOut: '明日已售罄',
+    lastInCart: '明日最后几份已在你的购物车中',
+    add: '添加{{name}}',
+    remove: '减少一份{{name}}',
+    quantity: '已加入 {{count}} 份',
+    summary_one: '{{count}} 份 · {{total}}',
+    summary_other: '{{count}} 份 · {{total}}',
+    viewCart: '查看购物车',
   },
   cart: {
     title: '购物车',

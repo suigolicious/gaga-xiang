@@ -124,3 +124,9 @@ export const Radius = {
 
 /** Keeps content readable on wide screens (web, tablets). */
 export const MaxContentWidth = 800;
+
+/**
+ * On web, the customer tab bar is pinned over the top of the page (24px down, 40px tall),
+ * so scrolling screens start below it. Native tab bars sit at the bottom and need no inset.
+ */
+export const TopTabInset = Platform.select({ web: 72 }) ?? 0;

@@ -14,8 +14,19 @@ const en = {
   },
   menu: {
     title: "Tomorrow's menu",
-    description:
-      'Browse the dishes for the next delivery day. Orders close at 2PM New York time the day before.',
+    delivery: 'Delivered {{date}}, around 7am',
+    orderBy: 'Order by 2PM today',
+    closed: "Orders for {{date}} have closed. Tomorrow's menu opens at midnight.",
+    left_one: '{{count}} dish left for tomorrow',
+    left_other: '{{count}} dishes left for tomorrow',
+    soldOut: 'Sold out for tomorrow',
+    lastInCart: "You have the last of tomorrow's dishes in your cart",
+    add: 'Add {{name}}',
+    remove: 'Remove one {{name}}',
+    quantity: '{{count}} in cart',
+    summary_one: '{{count}} dish · {{total}}',
+    summary_other: '{{count}} dishes · {{total}}',
+    viewCart: 'View cart',
   },
   cart: {
     title: 'Cart',
