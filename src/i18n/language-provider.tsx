@@ -5,18 +5,16 @@ import { createContext, use, useEffect, useState, type PropsWithChildren } from 
 
 import i18n, { Languages, resolveDeviceLanguage, type Language } from '@/i18n';
 
-/** 'system' follows the phone's language; otherwise the user picked one explicitly. */
-export type LanguagePreference = 'system' | Language;
-
 const STORAGE_KEY = 'language-preference';
 
-function isLanguagePreference(value: string | null): value is LanguagePreference {
-  return value === 'system' || Languages.includes(value as Language);
+function isLanguage(value: string | null): value is Language {
+  return Languages.includes(value as Language);
 }
 
 type LanguageContextValue = {
-  preference: LanguagePreference;
-  setPreference: (preference: LanguagePreference) => void;
+  /** The language the app is currently shown in. */
+  language: Language;
+  setLanguage: (language: Language) => void;
 };
 
 const LanguageContext = createContext<LanguageContextValue | null>(null);
@@ -26,17 +24,18 @@ const LanguageContext = createContext<LanguageContextValue | null>(null);
 SplashScreen.preventAutoHideAsync();
 
 export function LanguageProvider({ children }: PropsWithChildren) {
-  const [preference, setPreferenceState] = useState<LanguagePreference>('system');
+  // null until the user picks a language; until then the app follows the phone.
+  const [chosen, setChosen] = useState<Language | null>(null);
   const [loaded, setLoaded] = useState(false);
   // Re-renders when the phone's language changes (Android can change it while the app runs).
   const locales = useLocales();
 
-  const language = preference === 'system' ? resolveDeviceLanguage(locales) : preference;
+  const language = chosen ?? resolveDeviceLanguage(locales);
 
   useEffect(() => {
     AsyncStorage.getItem(STORAGE_KEY)
       .then((saved) => {
-        if (isLanguagePreference(saved)) setPreferenceState(saved);
+        if (isLanguage(saved)) setChosen(saved);
       })
       .catch(() => {
         // Storage unavailable: fall back to the phone's language.
@@ -53,18 +52,18 @@ export function LanguageProvider({ children }: PropsWithChildren) {
     if (loaded) SplashScreen.hideAsync();
   }, [loaded]);
 
-  const setPreference = (next: LanguagePreference) => {
-    setPreferenceState(next);
+  const setLanguage = (next: Language) => {
+    setChosen(next);
     AsyncStorage.setItem(STORAGE_KEY, next).catch(() => {
       // Not saved; the choice still applies for this session.
     });
   };
 
-  return <LanguageContext value={{ preference, setPreference }}>{children}</LanguageContext>;
+  return <LanguageContext value={{ language, setLanguage }}>{children}</LanguageContext>;
 }
 
-export function useLanguagePreference() {
+export function useLanguage() {
   const context = use(LanguageContext);
-  if (!context) throw new Error('useLanguagePreference must be used inside LanguageProvider');
+  if (!context) throw new Error('useLanguage must be used inside LanguageProvider');
   return context;
 }

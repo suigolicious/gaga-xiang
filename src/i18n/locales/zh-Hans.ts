@@ -27,7 +27,6 @@ const zhHans: Translations = {
   },
   language: {
     label: '语言',
-    system: '跟随系统',
   },
   admin: {
     title: '管理后台',
