@@ -16,7 +16,8 @@ const en = {
     title: "Tomorrow's menu",
     delivery: 'Delivered {{date}}, around 7am',
     orderBy: 'Order by 2PM today',
-    closed: "Orders for {{date}} have closed. Tomorrow's menu opens at midnight.",
+    closed:
+      'Orders for {{date}} have closed. You can still fill your cart and check out after midnight.',
     left_one: '{{count}} dish left for tomorrow',
     left_other: '{{count}} dishes left for tomorrow',
     soldOut: 'Sold out for tomorrow',
@@ -30,7 +31,15 @@ const en = {
   },
   cart: {
     title: 'Cart',
-    description: 'Review your order for tomorrow and pay before the cutoff.',
+    empty: 'Your cart is empty',
+    browse: "Browse tomorrow's menu",
+    subtotal: 'Subtotal',
+    tax: 'Tax ({{rate}}%)',
+    total: 'Total',
+    checkout: 'Checkout',
+    paymentSoon: "Payment isn't set up yet.",
+    closedCheckout:
+      'Ordering for {{date}} closed at 2PM. Your cart is saved, and you can check out after midnight for the next delivery.',
   },
   orders: {
     title: 'Your orders',

@@ -34,6 +34,7 @@ commit history matter.
 - Browse the menu for the next delivery day
 - They can only place orders for the next delivery day, as in, they can not place a order for 2 days later or more
 - Place and pay for orders before the cutoff
+- The cart is saved for as long as the customer stays logged in (cleared on sign-out). After the cutoff, customers can still add and change dishes in the cart, but checkout is grayed out with a message saying why
 - Order confirmation and delivery notifications
 
 ### Admin (family)
@@ -47,6 +48,7 @@ commit history matter.
 - Order cutoff: orders for a given day close at a set time the day before
 - Delivery zone: only accept addresses within the service area - TBD
 - An order is only confirmed after payment is verified server-side
+- Sales tax: 7% (NC 4.75% + Forsyth County 2.25%, for Clemmons, NC), on the order subtotal. No delivery fee and no minimum order for now
 
 ## Structure (planned)
 - `src/app/(customer)/`: customer-facing screens
