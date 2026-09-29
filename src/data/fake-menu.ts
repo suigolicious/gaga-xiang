@@ -13,18 +13,20 @@ export type MenuItem = {
   description: Record<Language, string>;
   /** Price in US cents, to avoid floating-point rounding. */
   priceCents: number;
-  imageUrl?: string;
+  /** A photo bundled with the app (`require(...)`) or a web URL. */
+  image?: number | string;
 };
 
 export const FakeMenu: MenuItem[] = [
   {
-    id: 'twice-cooked-pork',
-    name: '回锅肉 Twice-cooked pork',
+    id: 'garlic-lettuce',
+    name: '蒜香生菜 Garlic Lettuce',
     description: {
-      en: 'Pork belly stir-fried with leeks and doubanjiang.',
-      'zh-Hans': '五花肉配蒜苗和豆瓣酱爆炒。',
+      en: 'Romaine lettuce stir-fried with fresh garlic.',
+      'zh-Hans': '生菜配蒜末清炒，爽脆鲜香。',
     },
-    priceCents: 1600,
+    priceCents: 1000,
+    image: require('@/assets/images/dishes/garlic-lettuce.jpg'),
   },
   {
     id: 'mapo-tofu',

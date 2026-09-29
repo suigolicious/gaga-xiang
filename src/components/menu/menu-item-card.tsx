@@ -59,8 +59,8 @@ export function DishImage({ item, size = 88 }: { item: MenuItem; size?: number }
   const theme = useTheme();
   const box = { width: size, height: size };
 
-  if (item.imageUrl) {
-    return <Image source={item.imageUrl} style={[styles.image, box]} contentFit="cover" />;
+  if (item.image) {
+    return <Image source={item.image} style={[styles.image, box]} contentFit="cover" />;
   }
   return (
     <View style={[styles.image, styles.placeholder, box, { backgroundColor: theme.primary }]}>
