@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { FlatList, Pressable, StyleSheet, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useCart } from '@/cart/cart-provider';
 import { MenuItemCard } from '@/components/menu/menu-item-card';
@@ -17,17 +17,26 @@ import { addDays, type OrderingWindow } from '@/lib/ordering-window';
 /** Show the "only N left" warning once remaining capacity drops to this. */
 const LOW_CAPACITY_THRESHOLD = 20;
 
+/** Room left under the last dish so it can scroll clear of the floating cart bar. */
+const SUMMARY_BAR_SPACE = 88;
+
 export default function MenuScreen() {
   const { t } = useTranslation();
   const cart = useCart();
+  const insets = useSafeAreaInsets();
+  const showSummary = cart.count > 0;
 
   return (
     <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
+      {/* No bottom edge: the list scrolls under the tab bar and the floating cart bar. */}
+      <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
         <FlatList
           data={FakeMenu}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.list}
+          contentContainerStyle={[
+            styles.list,
+            { paddingBottom: insets.bottom + Spacing.three + (showSummary ? SUMMARY_BAR_SPACE : 0) },
+          ]}
           ListHeaderComponent={
             <MenuHeader window={cart.window} remaining={cart.remaining} cartCount={cart.count} />
           }
@@ -41,7 +50,7 @@ export default function MenuScreen() {
             />
           )}
         />
-        {cart.count > 0 && (
+        {showSummary && (
           <CartSummaryBar
             label={t('menu.summary', {
               count: cart.count,
@@ -123,11 +132,13 @@ function ClosedNotice({ window }: { window: OrderingWindow }) {
   );
 }
 
+/** Floats over the list, so dishes scroll underneath it. */
 function CartSummaryBar({ label }: { label: string }) {
   const { t } = useTranslation();
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
   return (
-    <View style={styles.summaryContainer}>
+    <View style={[styles.summaryContainer, { bottom: insets.bottom + Spacing.three }]}>
       <Pressable
         onPress={() => router.navigate('/cart')}
         role="button"
@@ -183,11 +194,13 @@ const styles = StyleSheet.create({
     borderLeftWidth: 4,
   },
   summaryContainer: {
+    position: 'absolute',
     width: '100%',
     maxWidth: MaxContentWidth,
     alignSelf: 'center',
     paddingHorizontal: Spacing.three,
-    paddingBottom: Spacing.three,
+    // Taps on either side of the bar reach the list underneath.
+    pointerEvents: 'box-none',
   },
   summaryBar: {
     flexDirection: 'row',
@@ -196,6 +209,8 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.three,
     paddingHorizontal: Spacing.four,
     borderRadius: Radius.pill,
+    // Lifts the bar off the dishes scrolling beneath it.
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
   },
   pressed: {
     opacity: 0.8,
