@@ -5,6 +5,7 @@ import { DailyLunchboxCap, LunchboxPriceCents } from '@/constants/business';
 import { FakeLocations, FakeOrderedCount, type PickupLocation } from '@/data/fake-lunchbox';
 import { useNow } from '@/hooks/use-now';
 import { getOrderingWindow, type OrderingWindow } from '@/lib/ordering-window';
+import { supabase } from '@/lib/supabase';
 import { salesTaxCents } from '@/lib/tax';
 
 type OrderContextValue = {
@@ -28,7 +29,6 @@ type OrderContextValue = {
 
 type Draft = { quantity: number; locationId: string | null };
 
-// TODO: once sign-in exists, clear this on sign-out so it only lasts while logged in.
 const STORAGE_KEY = 'order-draft';
 
 const EMPTY_DRAFT: Draft = { quantity: 1, locationId: null };
@@ -48,9 +48,9 @@ const OrderContext = createContext<OrderContextValue | null>(null);
 /**
  * The customer's order in progress (how many lunchboxes, and where to pick them up),
  * plus the ordering rules that decide whether they can check out. It's saved on the
- * device and kept across days, so it applies to whichever delivery day is open, and
- * customers can keep changing it after the cutoff. The server re-checks everything
- * at checkout.
+ * device and kept across days until sign-out, so it applies to whichever delivery day
+ * is open, and customers can keep changing it after the cutoff. The server re-checks
+ * everything at checkout.
  */
 export function OrderProvider({ children }: PropsWithChildren) {
   const now = useNow();
@@ -68,6 +68,14 @@ export function OrderProvider({ children }: PropsWithChildren) {
         // Unreadable or missing: start from the defaults.
       })
       .finally(() => setLoaded(true));
+  }, []);
+
+  useEffect(() => {
+    // The saved order only lasts while the customer stays signed in.
+    const { data } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_OUT') setDraft(EMPTY_DRAFT);
+    });
+    return () => data.subscription.unsubscribe();
   }, []);
 
   useEffect(() => {

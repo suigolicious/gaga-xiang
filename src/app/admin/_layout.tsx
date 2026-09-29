@@ -5,7 +5,7 @@ import { StyleSheet } from 'react-native';
 import { TextLink } from '@/components/text-link';
 import { Spacing } from '@/constants/theme';
 
-/** Dev-only shortcut back to the customer app, mirroring the admin link on Account. */
+/** Back to the customer app, mirroring the admin row on Account. */
 function CustomerAppLink() {
   const { t } = useTranslation();
   return (
@@ -15,11 +15,11 @@ function CustomerAppLink() {
   );
 }
 
-// TODO: gate these screens by user role once authentication is in place.
+// Only admins get here: see the guard in the root layout.
 export default function AdminLayout() {
   const { t } = useTranslation();
   return (
-    <Stack screenOptions={{ headerRight: __DEV__ ? CustomerAppLink : undefined }}>
+    <Stack screenOptions={{ headerRight: CustomerAppLink }}>
       <Stack.Screen
         name="index"
         options={{
