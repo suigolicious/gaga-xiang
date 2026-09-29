@@ -39,13 +39,14 @@ export const FakeMenu: MenuItem[] = [
     image: require('@/assets/images/dishes/wok-fried-cauliflower.jpg'),
   },
   {
-    id: 'kung-pao-chicken',
-    name: '宫保鸡丁 Kung pao chicken',
+    id: 'wood-ear-eggs',
+    name: '木耳炒鸡蛋 Stir-Fried Eggs with Wood Ear Mushrooms',
     description: {
-      en: 'Diced chicken with peanuts and dried chilies.',
-      'zh-Hans': '鸡丁配花生米和干辣椒。',
+      en: 'Scrambled eggs with crunchy wood ear mushrooms.',
+      'zh-Hans': '滑嫩鸡蛋配爽脆木耳和葱花翻炒。',
     },
-    priceCents: 1500,
+    priceCents: 1000,
+    image: require('@/assets/images/dishes/wood-ear-eggs.jpg'),
   },
   {
     id: 'fish-fragrant-pork',
