@@ -29,13 +29,14 @@ export const FakeMenu: MenuItem[] = [
     image: require('@/assets/images/dishes/garlic-lettuce.jpg'),
   },
   {
-    id: 'mapo-tofu',
-    name: '麻婆豆腐 Mapo tofu',
+    id: 'wok-fried-cauliflower',
+    name: '爆炒菜花 Wok-Fried Cauliflower',
     description: {
-      en: 'Soft tofu in a numbing, spicy sauce with minced beef.',
-      'zh-Hans': '嫩豆腐配牛肉末，麻辣鲜香。',
+      en: 'Cauliflower florets and bell peppers, fried over high heat.',
+      'zh-Hans': '菜花配彩椒大火爆炒，焦香爽脆。',
     },
-    priceCents: 1300,
+    priceCents: 1100,
+    image: require('@/assets/images/dishes/wok-fried-cauliflower.jpg'),
   },
   {
     id: 'kung-pao-chicken',
