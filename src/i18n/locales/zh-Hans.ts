@@ -11,6 +11,8 @@ const zhHans: Translations = {
     title: '明日盒饭',
     delivery: '{{date}} 中午 12 点至 1 点送达',
     orderBy: '请在今天下午 2 点前下单',
+    loadError: '无法加载盒饭，请检查网络后重试。',
+    retry: '重试',
     notPosted: '明日盒饭还没公布，请稍后再来看看。',
     closedTitle: '今日已截止下单',
     closedBody: '可先选好份数和取餐地点，午夜后结账，{{date}}送达。',

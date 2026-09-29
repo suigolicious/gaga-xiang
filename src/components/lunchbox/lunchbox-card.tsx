@@ -6,9 +6,8 @@ import { DishDetails } from '@/components/lunchbox/dish-details';
 import { DishPhoto } from '@/components/lunchbox/dish-photo';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { LunchboxPriceCents } from '@/constants/business';
 import { Radius, Spacing } from '@/constants/theme';
-import type { Dish, Lunchbox } from '@/data/fake-lunchbox';
+import type { Dish, Lunchbox } from '@/data/lunchbox';
 import { useLanguage } from '@/i18n/language-provider';
 import { formatPrice } from '@/lib/format';
 
@@ -19,8 +18,13 @@ function columnsFor(count: number) {
   return 3;
 }
 
+type LunchboxCardProps = {
+  lunchbox: Lunchbox;
+  priceCents: number;
+};
+
 /** What's in the lunchbox: a photo and name for each dish, then the sides and price. */
-export function LunchboxCard({ lunchbox }: { lunchbox: Lunchbox }) {
+export function LunchboxCard({ lunchbox, priceCents }: LunchboxCardProps) {
   const { t } = useTranslation();
   const { language } = useLanguage();
   const [openDish, setOpenDish] = useState<Dish | null>(null);
@@ -48,7 +52,7 @@ export function LunchboxCard({ lunchbox }: { lunchbox: Lunchbox }) {
           {lunchbox.sides[language]}
         </ThemedText>
         <ThemedText type="smallBold">
-          {t('lunchbox.perBox', { price: formatPrice(LunchboxPriceCents) })}
+          {t('lunchbox.perBox', { price: formatPrice(priceCents) })}
         </ThemedText>
       </View>
       <DishDetails dish={openDish} onClose={() => setOpenDish(null)} />

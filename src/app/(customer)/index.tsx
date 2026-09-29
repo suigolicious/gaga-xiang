@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAuth } from '@/auth/auth-provider';
@@ -10,12 +10,11 @@ import { TextLink } from '@/components/text-link';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { MaxContentWidth, Radius, Spacing, TopTabInset } from '@/constants/theme';
-import { FakeLocations, FakeLunchbox } from '@/data/fake-lunchbox';
+import { useBusinessSettings, useLunchbox, usePickupLocations } from '@/data/lunchbox';
 import { useTheme } from '@/hooks/use-theme';
 import { useLanguage } from '@/i18n/language-provider';
 import { formatCalendarDate, formatPrice } from '@/lib/format';
-import { addDays, type OrderingWindow } from '@/lib/ordering-window';
-import { SalesTaxPercent } from '@/lib/tax';
+import type { OrderingWindow } from '@/lib/ordering-window';
 import { useOrder } from '@/order/order-provider';
 
 /** Show the "N left" warning once remaining capacity drops to this. */
@@ -24,35 +23,56 @@ const LOW_CAPACITY_THRESHOLD = 20;
 export default function LunchboxScreen() {
   const { t } = useTranslation();
   const order = useOrder();
+  // Shared with the order provider through React Query's cache: one request, not two.
+  const settings = useBusinessSettings();
+  const lunchbox = useLunchbox(order.window?.orderDate ?? null);
+  const locations = usePickupLocations();
+  const queries = [settings, lunchbox, locations];
+
+  let body;
+  if (queries.some((query) => query.isError)) {
+    body = (
+      <LoadError
+        onRetry={() => {
+          for (const query of queries) if (query.isError) query.refetch();
+        }}
+      />
+    );
+  } else if (!order.settings || !order.window || !lunchbox.isSuccess || !locations.isSuccess) {
+    // Also covers web pre-rendering, where the time (and so the day) isn't known yet.
+    body = <ActivityIndicator style={styles.loading} />;
+  } else if (!lunchbox.data) {
+    body = <ThemedText themeColor="textSecondary">{t('lunchbox.notPosted')}</ThemedText>;
+  } else {
+    body = (
+      <>
+        <LunchboxCard lunchbox={lunchbox.data} priceCents={order.settings.lunchboxPriceCents} />
+        <Section title={t('lunchbox.location')}>
+          <PickupLocationPicker
+            locations={locations.data}
+            selectedId={order.location?.id ?? null}
+            onSelect={order.selectLocation}
+          />
+        </Section>
+        <QuantityRow />
+        <Checkout />
+      </>
+    );
+  }
 
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.content}>
           <Header window={order.window} available={order.available} />
-          {FakeLunchbox ? (
-            <>
-              <LunchboxCard lunchbox={FakeLunchbox} />
-              <Section title={t('lunchbox.location')}>
-                <PickupLocationPicker
-                  locations={FakeLocations}
-                  selectedId={order.location?.id ?? null}
-                  onSelect={order.selectLocation}
-                />
-              </Section>
-              <QuantityRow />
-              <Checkout />
-            </>
-          ) : (
-            <ThemedText themeColor="textSecondary">{t('lunchbox.notPosted')}</ThemedText>
-          )}
+          {body}
         </ScrollView>
       </SafeAreaView>
     </ThemedView>
   );
 }
 
-function Header({ window, available }: { window: OrderingWindow | null; available: number }) {
+function Header({ window, available }: { window: OrderingWindow | null; available: number | null }) {
   const { t } = useTranslation();
   const { language } = useLanguage();
   const theme = useTheme();
@@ -61,10 +81,9 @@ function Header({ window, available }: { window: OrderingWindow | null; availabl
   // What the customer most needs to know about ordering right now. After the cutoff,
   // the closed notice covers it.
   let status: string | null = null;
-  if (window?.isOpen && available <= 0) {
-    status = t('lunchbox.soldOut');
-  } else if (window?.isOpen && available <= LOW_CAPACITY_THRESHOLD) {
-    status = t('lunchbox.left', { count: available });
+  if (window?.isOpen && available !== null) {
+    if (available <= 0) status = t('lunchbox.soldOut');
+    else if (available <= LOW_CAPACITY_THRESHOLD) status = t('lunchbox.left', { count: available });
   }
 
   return (
@@ -97,7 +116,7 @@ function ClosedNotice({ window }: { window: OrderingWindow }) {
   const { t } = useTranslation();
   const { language } = useLanguage();
   const theme = useTheme();
-  const nextDelivery = formatCalendarDate(addDays(window.deliveryDate, 1), language);
+  const nextDelivery = formatCalendarDate(window.orderDate, language);
 
   return (
     <ThemedView
@@ -108,6 +127,20 @@ function ClosedNotice({ window }: { window: OrderingWindow }) {
         {t('lunchbox.closedBody', { date: nextDelivery })}
       </ThemedText>
     </ThemedView>
+  );
+}
+
+function LoadError({ onRetry }: { onRetry: () => void }) {
+  const { t } = useTranslation();
+  return (
+    <View style={styles.section}>
+      <ThemedText themeColor="textSecondary">{t('lunchbox.loadError')}</ThemedText>
+      <Pressable onPress={onRetry} role="button" style={({ pressed }) => pressed && styles.pressed}>
+        <ThemedText type="smallBold" themeColor="tint">
+          {t('lunchbox.retry')}
+        </ThemedText>
+      </Pressable>
+    </View>
   );
 }
 
@@ -155,7 +188,7 @@ function Checkout() {
   // signing in, which gets a link instead.
   let note: string | null = t('lunchbox.paymentSoon');
   if (order.window && !order.isOpen) {
-    const nextDelivery = formatCalendarDate(addDays(order.window.deliveryDate, 1), language);
+    const nextDelivery = formatCalendarDate(order.window.orderDate, language);
     note = t('lunchbox.closedCheckout', { date: nextDelivery });
   } else if (order.soldOut) {
     note = t('lunchbox.soldOutCheckout');
@@ -171,7 +204,10 @@ function Checkout() {
     <View style={styles.checkout}>
       <View style={styles.totals}>
         <TotalRow label={t('lunchbox.subtotal')} cents={order.subtotalCents} />
-        <TotalRow label={t('lunchbox.tax', { rate: SalesTaxPercent })} cents={order.taxCents} />
+        <TotalRow
+          label={t('lunchbox.tax', { rate: (order.settings?.salesTaxBasisPoints ?? 0) / 100 })}
+          cents={order.taxCents}
+        />
         <TotalRow label={t('lunchbox.total')} cents={order.totalCents} bold />
       </View>
       {/* Grayed out with the reason, and disabled until payment exists: an order is only
@@ -284,5 +320,11 @@ const styles = StyleSheet.create({
   },
   note: {
     textAlign: 'center',
+  },
+  loading: {
+    marginTop: Spacing.five,
+  },
+  pressed: {
+    opacity: 0.7,
   },
 });

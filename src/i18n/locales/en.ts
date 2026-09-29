@@ -15,6 +15,8 @@ const en = {
     title: "Tomorrow's lunchbox",
     delivery: 'Delivered {{date}}, 12–1pm',
     orderBy: 'Order by 2PM today',
+    loadError: "Couldn't load the lunchbox. Check your connection and try again.",
+    retry: 'Try again',
     notPosted: "Tomorrow's lunchbox hasn't been posted yet. Check back soon.",
     closedTitle: 'Ordering is closed for today',
     closedBody: 'Set up your order now and check out after midnight for delivery {{date}}.',
