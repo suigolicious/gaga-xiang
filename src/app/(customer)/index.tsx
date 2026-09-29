@@ -12,7 +12,7 @@ import { FakeMenu } from '@/data/fake-menu';
 import { useTheme } from '@/hooks/use-theme';
 import { useLanguage } from '@/i18n/language-provider';
 import { formatCalendarDate, formatPrice } from '@/lib/format';
-import type { OrderingWindow } from '@/lib/ordering-window';
+import { addDays, type OrderingWindow } from '@/lib/ordering-window';
 
 /** Show the "only N left" warning once remaining capacity drops to this. */
 const LOW_CAPACITY_THRESHOLD = 20;
@@ -66,16 +66,15 @@ function MenuHeader({ window, remaining, cartCount }: MenuHeaderProps) {
   const theme = useTheme();
   const date = window && formatCalendarDate(window.deliveryDate, language);
 
-  // What the customer most needs to know about ordering right now.
+  // What the customer most needs to know about ordering right now. After the cutoff,
+  // the closed notice covers it.
   let status: string | null = null;
   let alert = false;
-  if (window && !window.isOpen) {
-    status = t('menu.closed', { date });
-    alert = true;
-  } else if (window && remaining <= 0) {
+  const isOpen = window?.isOpen ?? false;
+  if (isOpen && remaining <= 0) {
     status = cartCount > 0 ? t('menu.lastInCart') : t('menu.soldOut');
     alert = true;
-  } else if (window && remaining <= LOW_CAPACITY_THRESHOLD) {
+  } else if (isOpen && remaining <= LOW_CAPACITY_THRESHOLD) {
     status = t('menu.left', { count: remaining });
     alert = true;
   }
@@ -84,7 +83,8 @@ function MenuHeader({ window, remaining, cartCount }: MenuHeaderProps) {
     <View style={styles.header}>
       <ThemedText type="subtitle">{t('menu.title')}</ThemedText>
       {/* Needs the current time, so it's skipped during web pre-rendering. While closed,
-          the status message names the delivery date instead. */}
+          the closed card names the next delivery date instead. */}
+      {window && !window.isOpen && <ClosedNotice window={window} />}
       {window?.isOpen && (
         <View style={styles.headerDetails}>
           <ThemedText themeColor="textSecondary">{t('menu.delivery', { date })}</ThemedText>
@@ -101,6 +101,25 @@ function MenuHeader({ window, remaining, cartCount }: MenuHeaderProps) {
         </ThemedView>
       )}
     </View>
+  );
+}
+
+/** After the cutoff: customers can keep filling their cart for the following delivery. */
+function ClosedNotice({ window }: { window: OrderingWindow }) {
+  const { t } = useTranslation();
+  const { language } = useLanguage();
+  const theme = useTheme();
+  const nextDelivery = formatCalendarDate(addDays(window.deliveryDate, 1), language);
+
+  return (
+    <ThemedView
+      type="backgroundElement"
+      style={[styles.closedNotice, { borderLeftColor: theme.primary }]}>
+      <ThemedText type="smallBold">{t('menu.closedTitle')}</ThemedText>
+      <ThemedText type="small" themeColor="textSecondary">
+        {t('menu.closedBody', { date: nextDelivery })}
+      </ThemedText>
+    </ThemedView>
   );
 }
 
@@ -156,6 +175,12 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.three,
     borderRadius: Radius.pill,
+  },
+  closedNotice: {
+    gap: Spacing.half,
+    padding: Spacing.three,
+    borderRadius: Radius.medium,
+    borderLeftWidth: 4,
   },
   summaryContainer: {
     width: '100%',

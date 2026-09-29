@@ -10,6 +10,13 @@ export type OrderingWindow = {
   isOpen: boolean;
 };
 
+/** The calendar date `days` after `date`. */
+export function addDays({ year, month, day }: CalendarDate, days: number): CalendarDate {
+  // Date.UTC rolls month and year over, so the result is always a valid date.
+  const date = new Date(Date.UTC(year, month - 1, day + days));
+  return { year: date.getUTCFullYear(), month: date.getUTCMonth() + 1, day: date.getUTCDate() };
+}
+
 const newYorkParts = new Intl.DateTimeFormat('en-US', {
   timeZone: BusinessTimeZone,
   year: 'numeric',
@@ -28,15 +35,8 @@ export function getOrderingWindow(now: Date): OrderingWindow {
   const parts = Object.fromEntries(
     newYorkParts.formatToParts(now).map((part) => [part.type, Number(part.value)]),
   );
-  // Date.UTC rolls month and year over, so day + 1 is always a valid date.
-  const tomorrow = new Date(Date.UTC(parts.year, parts.month - 1, parts.day + 1));
-
   return {
-    deliveryDate: {
-      year: tomorrow.getUTCFullYear(),
-      month: tomorrow.getUTCMonth() + 1,
-      day: tomorrow.getUTCDate(),
-    },
+    deliveryDate: addDays({ year: parts.year, month: parts.month, day: parts.day }, 1),
     isOpen: parts.hour < OrderCutoffHour,
   };
 }
