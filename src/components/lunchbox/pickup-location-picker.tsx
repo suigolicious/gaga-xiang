@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Radius, Spacing } from '@/constants/theme';
-import type { PickupLocation } from '@/data/fake-lunchbox';
+import type { PickupLocation } from '@/data/lunchbox';
 import { useTheme } from '@/hooks/use-theme';
 import { useLanguage } from '@/i18n/language-provider';
 

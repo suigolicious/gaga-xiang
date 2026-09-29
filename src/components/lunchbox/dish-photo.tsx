@@ -3,7 +3,7 @@ import { StyleSheet, View, type ImageStyle, type StyleProp, type ViewStyle } fro
 
 import { ThemedText } from '@/components/themed-text';
 import { Radius } from '@/constants/theme';
-import type { Dish } from '@/data/fake-lunchbox';
+import type { Dish } from '@/data/lunchbox';
 import { useTheme } from '@/hooks/use-theme';
 
 type DishPhotoProps = {

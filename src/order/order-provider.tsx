@@ -1,19 +1,26 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, use, useEffect, useState, type PropsWithChildren } from 'react';
 
-import { DailyLunchboxCap, LunchboxPriceCents } from '@/constants/business';
-import { FakeLocations, FakeOrderedCount, type PickupLocation } from '@/data/fake-lunchbox';
+import {
+  useBusinessSettings,
+  useLunchboxesRemaining,
+  usePickupLocations,
+  type BusinessSettings,
+  type PickupLocation,
+} from '@/data/lunchbox';
 import { useNow } from '@/hooks/use-now';
 import { getOrderingWindow, type OrderingWindow } from '@/lib/ordering-window';
 import { supabase } from '@/lib/supabase';
 import { salesTaxCents } from '@/lib/tax';
 
 type OrderContextValue = {
-  /** Null while a web page is being pre-rendered and the time isn't known yet. */
+  /** Null until the settings have loaded, or while a web page is pre-rendered. */
+  settings: BusinessSettings | null;
+  /** Null until the settings have loaded, or while a web page is pre-rendered. */
   window: OrderingWindow | null;
   isOpen: boolean;
-  /** Lunchboxes still available for the delivery day, before this order. */
-  available: number;
+  /** Lunchboxes still available for the order's delivery day; null if not known. */
+  available: number | null;
   soldOut: boolean;
   quantity: number;
   canIncrement: boolean;
@@ -54,7 +61,13 @@ const OrderContext = createContext<OrderContextValue | null>(null);
  */
 export function OrderProvider({ children }: PropsWithChildren) {
   const now = useNow();
-  const window = now && getOrderingWindow(now);
+  const settings = useBusinessSettings().data ?? null;
+  const locations = usePickupLocations().data;
+  const window =
+    now && settings
+      ? getOrderingWindow(now, { timeZone: settings.timeZone, cutoffHour: settings.orderCutoffHour })
+      : null;
+  const available = useLunchboxesRemaining(window?.orderDate ?? null).data ?? null;
   const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT);
   const [loaded, setLoaded] = useState(false);
 
@@ -87,28 +100,30 @@ export function OrderProvider({ children }: PropsWithChildren) {
   }, [loaded, draft]);
 
   const isOpen = window?.isOpen ?? false;
-  // The daily cap covers every customer's order for the day. After the cutoff the order
-  // is for the following delivery, which nobody can have ordered for yet.
-  const available = DailyLunchboxCap - (isOpen ? FakeOrderedCount : 0);
   const { quantity } = draft;
-  // A location that's since been removed counts as not chosen.
-  const location = FakeLocations.find((place) => place.id === draft.locationId) ?? null;
-  const subtotalCents = LunchboxPriceCents * quantity;
-  const taxCents = salesTaxCents(subtotalCents);
+  // Never beyond what's left. If the count couldn't be loaded, the daily cap is the
+  // limit instead of blocking the customer: checkout re-checks what's actually left.
+  const limit = available ?? settings?.dailyLunchboxCap ?? 0;
+  const canIncrement = quantity < limit;
+  // A location that's since been removed or turned off counts as not chosen.
+  const location = locations?.find((place) => place.id === draft.locationId) ?? null;
+  const subtotalCents = (settings?.lunchboxPriceCents ?? 0) * quantity;
+  const taxCents = salesTaxCents(subtotalCents, settings?.salesTaxBasisPoints ?? 0);
 
   const setQuantity = (next: number) => setDraft((current) => ({ ...current, quantity: next }));
 
   return (
     <OrderContext
       value={{
+        settings,
         window,
         isOpen,
         available,
-        soldOut: available <= 0,
+        soldOut: available !== null && available <= 0,
         quantity,
-        canIncrement: quantity < available,
+        canIncrement,
         canDecrement: quantity > 1,
-        increment: () => quantity < available && setQuantity(quantity + 1),
+        increment: () => canIncrement && setQuantity(quantity + 1),
         decrement: () => quantity > 1 && setQuantity(quantity - 1),
         location,
         selectLocation: (id) => setDraft((current) => ({ ...current, locationId: id })),
