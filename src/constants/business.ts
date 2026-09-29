@@ -10,8 +10,11 @@ export const BusinessTimeZone = 'America/New_York';
 /** Orders for a delivery day close at this hour (24h, New York time) the day before. */
 export const OrderCutoffHour = 14;
 
-/** The kitchen can make at most this many dishes per delivery day. */
-export const DailyDishCap = 100;
+/** The kitchen can make at most this many lunchboxes per delivery day, across all locations. */
+export const DailyLunchboxCap = 100;
+
+/** Every lunchbox costs the same, every day. In US cents, to avoid floating-point rounding. */
+export const LunchboxPriceCents = 1200;
 
 /**
  * Sales tax on orders, in basis points (700 = 7.00%): North Carolina 4.75% plus
