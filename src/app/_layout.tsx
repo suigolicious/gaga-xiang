@@ -1,22 +1,26 @@
 import '@/i18n';
 
+import { QueryClientProvider } from '@tanstack/react-query';
 import { Stack, ThemeProvider } from 'expo-router';
 import { useColorScheme } from 'react-native';
 
 import { AuthProvider, useAuth } from '@/auth/auth-provider';
 import { NavigationThemes } from '@/constants/theme';
 import { LanguageProvider } from '@/i18n/language-provider';
+import { queryClient } from '@/lib/query-client';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   return (
-    <LanguageProvider>
-      <AuthProvider>
-        <ThemeProvider value={NavigationThemes[colorScheme === 'dark' ? 'dark' : 'light']}>
-          <RootStack />
-        </ThemeProvider>
-      </AuthProvider>
-    </LanguageProvider>
+    <QueryClientProvider client={queryClient}>
+      <LanguageProvider>
+        <AuthProvider>
+          <ThemeProvider value={NavigationThemes[colorScheme === 'dark' ? 'dark' : 'light']}>
+            <RootStack />
+          </ThemeProvider>
+        </AuthProvider>
+      </LanguageProvider>
+    </QueryClientProvider>
   );
 }
 

@@ -4,6 +4,8 @@ import '@/lib/local-storage';
 import { createClient } from '@supabase/supabase-js';
 import { AppState } from 'react-native';
 
+import type { Database } from '@/lib/database.types';
+
 const url = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const publishableKey = process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
@@ -17,7 +19,7 @@ if (!url || !publishableKey) {
  * The app's connection to Supabase (database and sign-in). It uses the publishable
  * key, so it can only do what the database's row-level security rules allow.
  */
-export const supabase = createClient(url, publishableKey, {
+export const supabase = createClient<Database>(url, publishableKey, {
   auth: {
     // Undefined while a web page is pre-rendered on the server, where there's no
     // localStorage; Supabase then keeps the session in memory for that render.
