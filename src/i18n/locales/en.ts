@@ -2,44 +2,43 @@
  * English UI strings. This file defines the translation keys; every other
  * language must provide the same keys (enforced by the `Translations` type).
  *
- * Dish names and descriptions are menu data, not UI strings, and are not
+ * Dish names and descriptions are lunchbox data, not UI strings, and are not
  * translated here.
  */
 const en = {
   tabs: {
-    menu: 'Menu',
-    cart: 'Cart',
+    lunchbox: 'Lunchbox',
     orders: 'Orders',
     account: 'Account',
   },
-  menu: {
-    title: "Tomorrow's menu",
-    delivery: 'Delivered {{date}}, around 7am',
+  lunchbox: {
+    title: "Tomorrow's lunchbox",
+    delivery: 'Delivered {{date}}, 12–1pm',
     orderBy: 'Order by 2PM today',
+    notPosted: "Tomorrow's lunchbox hasn't been posted yet. Check back soon.",
     closedTitle: 'Ordering is closed for today',
-    closedBody: 'Add dishes now and check out after midnight for delivery {{date}}.',
-    left_one: '{{count}} dish left for tomorrow',
-    left_other: '{{count}} dishes left for tomorrow',
+    closedBody: 'Set up your order now and check out after midnight for delivery {{date}}.',
+    left_one: '{{count}} lunchbox left for tomorrow',
+    left_other: '{{count}} lunchboxes left for tomorrow',
     soldOut: 'Sold out for tomorrow',
-    lastInCart: "You have the last of tomorrow's dishes in your cart",
-    add: 'Add {{name}}',
-    remove: 'Remove one {{name}}',
-    quantity: '{{count}} in cart',
-    summary_one: '{{count}} dish · {{total}}',
-    summary_other: '{{count}} dishes · {{total}}',
-    viewCart: 'View cart',
-  },
-  cart: {
-    title: 'Cart',
-    empty: 'Your cart is empty',
-    browse: "Browse tomorrow's menu",
+    perBox: '{{price}} per lunchbox',
+    dishDetails: 'Show details for {{name}}',
+    close: 'Close',
+    location: 'Pickup location',
+    quantityLabel: 'Lunchboxes',
+    add: 'Add a lunchbox',
+    remove: 'Remove a lunchbox',
+    quantity_one: '{{count}} lunchbox',
+    quantity_other: '{{count}} lunchboxes',
     subtotal: 'Subtotal',
     tax: 'Tax ({{rate}}%)',
     total: 'Total',
     checkout: 'Checkout',
     paymentSoon: "Payment isn't set up yet.",
+    chooseLocation: 'Choose a pickup location to check out.',
+    soldOutCheckout: "Tomorrow's lunchboxes are sold out.",
     closedCheckout:
-      'Ordering for {{date}} closed at 2PM. Your cart is saved, and you can check out after midnight for the next delivery.',
+      'Ordering closed at 2PM. Your choices are saved, and you can check out after midnight for delivery {{date}}.',
   },
   orders: {
     title: 'Your orders',
@@ -47,7 +46,7 @@ const en = {
   },
   account: {
     title: 'Account',
-    description: 'Sign in, delivery address, and notification settings.',
+    description: 'Sign in with your phone number, and text message settings.',
     openAdmin: 'Open admin (dev only)',
   },
   language: {
