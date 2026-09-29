@@ -1,8 +1,8 @@
-// Gives iOS and Android a `localStorage` (backed by SQLite) for the saved sign-in.
-// On web it does nothing: the browser's own localStorage is used.
-import 'expo-sqlite/localStorage/install';
+// Makes `localStorage` available on iOS and Android for the saved sign-in.
+import '@/lib/local-storage';
 
 import { createClient } from '@supabase/supabase-js';
+import { AppState } from 'react-native';
 
 const url = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const publishableKey = process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
@@ -28,3 +28,12 @@ export const supabase = createClient(url, publishableKey, {
     detectSessionInUrl: false,
   },
 });
+
+// On iOS and Android, only refresh the sign-in while the app is on screen: timers
+// don't run reliably in the background. The browser handles this itself on web.
+if (process.env.EXPO_OS !== 'web') {
+  AppState.addEventListener('change', (state) => {
+    if (state === 'active') supabase.auth.startAutoRefresh();
+    else supabase.auth.stopAutoRefresh();
+  });
+}

@@ -2,9 +2,11 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useAuth } from '@/auth/auth-provider';
 import { LunchboxCard } from '@/components/lunchbox/lunchbox-card';
 import { PickupLocationPicker } from '@/components/lunchbox/pickup-location-picker';
 import { QuantityStepper } from '@/components/quantity-stepper';
+import { TextLink } from '@/components/text-link';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { MaxContentWidth, Radius, Spacing, TopTabInset } from '@/constants/theme';
@@ -146,9 +148,12 @@ function Checkout() {
   const { language } = useLanguage();
   const theme = useTheme();
   const order = useOrder();
+  const auth = useAuth();
+  const needsSignIn = auth.ready && !auth.session;
 
-  // Why checkout isn't available yet, most important first.
-  let note = t('lunchbox.paymentSoon');
+  // Why checkout isn't available yet, most important first. Null when the reason is
+  // signing in, which gets a link instead.
+  let note: string | null = t('lunchbox.paymentSoon');
   if (order.window && !order.isOpen) {
     const nextDelivery = formatCalendarDate(addDays(order.window.deliveryDate, 1), language);
     note = t('lunchbox.closedCheckout', { date: nextDelivery });
@@ -156,9 +161,11 @@ function Checkout() {
     note = t('lunchbox.soldOutCheckout');
   } else if (!order.location) {
     note = t('lunchbox.chooseLocation');
+  } else if (needsSignIn) {
+    note = null;
   }
   // Everything the customer controls is in place; only payment is missing.
-  const ready = order.isOpen && !order.soldOut && order.location !== null;
+  const ready = order.isOpen && !order.soldOut && order.location !== null && !needsSignIn;
 
   return (
     <View style={styles.checkout}>
@@ -185,9 +192,15 @@ function Checkout() {
           {t('lunchbox.checkout')}
         </ThemedText>
       </Pressable>
-      <ThemedText type="small" themeColor="textSecondary" style={styles.note}>
-        {note}
-      </ThemedText>
+      {note ? (
+        <ThemedText type="small" themeColor="textSecondary" style={styles.note}>
+          {note}
+        </ThemedText>
+      ) : (
+        <TextLink href="/sign-in" style={styles.note}>
+          {t('lunchbox.signInToCheckout')}
+        </TextLink>
+      )}
     </View>
   );
 }
