@@ -1,75 +1,56 @@
-import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { FlatList, Pressable, StyleSheet, View } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { useCart } from '@/cart/cart-provider';
-import { MenuItemCard } from '@/components/menu/menu-item-card';
+import { LunchboxCard } from '@/components/lunchbox/lunchbox-card';
+import { PickupLocationPicker } from '@/components/lunchbox/pickup-location-picker';
+import { QuantityStepper } from '@/components/quantity-stepper';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { MaxContentWidth, Radius, Spacing, TopTabInset } from '@/constants/theme';
-import { FakeMenu } from '@/data/fake-menu';
+import { FakeLocations, FakeLunchbox } from '@/data/fake-lunchbox';
 import { useTheme } from '@/hooks/use-theme';
 import { useLanguage } from '@/i18n/language-provider';
 import { formatCalendarDate, formatPrice } from '@/lib/format';
 import { addDays, type OrderingWindow } from '@/lib/ordering-window';
+import { SalesTaxPercent } from '@/lib/tax';
+import { useOrder } from '@/order/order-provider';
 
-/** Show the "only N left" warning once remaining capacity drops to this. */
+/** Show the "N left" warning once remaining capacity drops to this. */
 const LOW_CAPACITY_THRESHOLD = 20;
 
-/** Room left under the last dish so it can scroll clear of the floating cart bar. */
-const SUMMARY_BAR_SPACE = 88;
-
-export default function MenuScreen() {
+export default function LunchboxScreen() {
   const { t } = useTranslation();
-  const cart = useCart();
-  const insets = useSafeAreaInsets();
-  const showSummary = cart.count > 0;
+  const order = useOrder();
 
   return (
     <ThemedView style={styles.container}>
-      {/* No bottom edge: the list scrolls under the tab bar and the floating cart bar. */}
-      <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
-        <FlatList
-          data={FakeMenu}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={[
-            styles.list,
-            { paddingBottom: insets.bottom + Spacing.three + (showSummary ? SUMMARY_BAR_SPACE : 0) },
-          ]}
-          ListHeaderComponent={
-            <MenuHeader window={cart.window} remaining={cart.remaining} cartCount={cart.count} />
-          }
-          renderItem={({ item }) => (
-            <MenuItemCard
-              item={item}
-              quantity={cart.quantityOf(item.id)}
-              canIncrement={cart.canAdd}
-              onIncrement={() => cart.increment(item.id)}
-              onDecrement={() => cart.decrement(item.id)}
-            />
+      <SafeAreaView style={styles.safeArea}>
+        <ScrollView contentContainerStyle={styles.content}>
+          <Header window={order.window} available={order.available} />
+          {FakeLunchbox ? (
+            <>
+              <LunchboxCard lunchbox={FakeLunchbox} />
+              <Section title={t('lunchbox.location')}>
+                <PickupLocationPicker
+                  locations={FakeLocations}
+                  selectedId={order.location?.id ?? null}
+                  onSelect={order.selectLocation}
+                />
+              </Section>
+              <QuantityRow />
+              <Checkout />
+            </>
+          ) : (
+            <ThemedText themeColor="textSecondary">{t('lunchbox.notPosted')}</ThemedText>
           )}
-        />
-        {showSummary && (
-          <CartSummaryBar
-            label={t('menu.summary', {
-              count: cart.count,
-              total: formatPrice(cart.subtotalCents),
-            })}
-          />
-        )}
+        </ScrollView>
       </SafeAreaView>
     </ThemedView>
   );
 }
 
-type MenuHeaderProps = {
-  window: OrderingWindow | null;
-  remaining: number;
-  cartCount: number;
-};
-
-function MenuHeader({ window, remaining, cartCount }: MenuHeaderProps) {
+function Header({ window, available }: { window: OrderingWindow | null; available: number }) {
   const { t } = useTranslation();
   const { language } = useLanguage();
   const theme = useTheme();
@@ -78,33 +59,29 @@ function MenuHeader({ window, remaining, cartCount }: MenuHeaderProps) {
   // What the customer most needs to know about ordering right now. After the cutoff,
   // the closed notice covers it.
   let status: string | null = null;
-  let alert = false;
-  const isOpen = window?.isOpen ?? false;
-  if (isOpen && remaining <= 0) {
-    status = cartCount > 0 ? t('menu.lastInCart') : t('menu.soldOut');
-    alert = true;
-  } else if (isOpen && remaining <= LOW_CAPACITY_THRESHOLD) {
-    status = t('menu.left', { count: remaining });
-    alert = true;
+  if (window?.isOpen && available <= 0) {
+    status = t('lunchbox.soldOut');
+  } else if (window?.isOpen && available <= LOW_CAPACITY_THRESHOLD) {
+    status = t('lunchbox.left', { count: available });
   }
 
   return (
     <View style={styles.header}>
-      <ThemedText type="subtitle">{t('menu.title')}</ThemedText>
+      <ThemedText type="subtitle">{t('lunchbox.title')}</ThemedText>
       {/* Needs the current time, so it's skipped during web pre-rendering. While closed,
-          the closed card names the next delivery date instead. */}
+          the closed notice names the next delivery date instead. */}
       {window && !window.isOpen && <ClosedNotice window={window} />}
       {window?.isOpen && (
         <View style={styles.headerDetails}>
-          <ThemedText themeColor="textSecondary">{t('menu.delivery', { date })}</ThemedText>
+          <ThemedText themeColor="textSecondary">{t('lunchbox.delivery', { date })}</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
-            {t('menu.orderBy')}
+            {t('lunchbox.orderBy')}
           </ThemedText>
         </View>
       )}
       {status && (
         <ThemedView type="backgroundSelected" style={styles.status}>
-          <ThemedText type="smallBold" style={alert && { color: theme.tint }}>
+          <ThemedText type="smallBold" style={{ color: theme.tint }}>
             {status}
           </ThemedText>
         </ThemedView>
@@ -113,7 +90,7 @@ function MenuHeader({ window, remaining, cartCount }: MenuHeaderProps) {
   );
 }
 
-/** After the cutoff: customers can keep filling their cart for the following delivery. */
+/** After the cutoff: customers can keep setting up their order for the following delivery. */
 function ClosedNotice({ window }: { window: OrderingWindow }) {
   const { t } = useTranslation();
   const { language } = useLanguage();
@@ -124,36 +101,106 @@ function ClosedNotice({ window }: { window: OrderingWindow }) {
     <ThemedView
       type="backgroundElement"
       style={[styles.closedNotice, { borderLeftColor: theme.primary }]}>
-      <ThemedText type="smallBold">{t('menu.closedTitle')}</ThemedText>
+      <ThemedText type="smallBold">{t('lunchbox.closedTitle')}</ThemedText>
       <ThemedText type="small" themeColor="textSecondary">
-        {t('menu.closedBody', { date: nextDelivery })}
+        {t('lunchbox.closedBody', { date: nextDelivery })}
       </ThemedText>
     </ThemedView>
   );
 }
 
-/** Floats over the list, so dishes scroll underneath it. */
-function CartSummaryBar({ label }: { label: string }) {
-  const { t } = useTranslation();
-  const theme = useTheme();
-  const insets = useSafeAreaInsets();
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <View style={[styles.summaryContainer, { bottom: insets.bottom + Spacing.three }]}>
+    <View style={styles.section}>
+      <ThemedText type="smallBold" themeColor="textSecondary">
+        {title}
+      </ThemedText>
+      {children}
+    </View>
+  );
+}
+
+function QuantityRow() {
+  const { t } = useTranslation();
+  const order = useOrder();
+
+  return (
+    <ThemedView type="backgroundElement" style={styles.quantityRow}>
+      <ThemedText type="smallBold">{t('lunchbox.quantityLabel')}</ThemedText>
+      <QuantityStepper
+        quantity={order.quantity}
+        canIncrement={order.canIncrement}
+        canDecrement={order.canDecrement}
+        onIncrement={order.increment}
+        onDecrement={order.decrement}
+        addLabel={t('lunchbox.add')}
+        removeLabel={t('lunchbox.remove')}
+        quantityLabel={t('lunchbox.quantity', { count: order.quantity })}
+      />
+    </ThemedView>
+  );
+}
+
+function Checkout() {
+  const { t } = useTranslation();
+  const { language } = useLanguage();
+  const theme = useTheme();
+  const order = useOrder();
+
+  // Why checkout isn't available yet, most important first.
+  let note = t('lunchbox.paymentSoon');
+  if (order.window && !order.isOpen) {
+    const nextDelivery = formatCalendarDate(addDays(order.window.deliveryDate, 1), language);
+    note = t('lunchbox.closedCheckout', { date: nextDelivery });
+  } else if (order.soldOut) {
+    note = t('lunchbox.soldOutCheckout');
+  } else if (!order.location) {
+    note = t('lunchbox.chooseLocation');
+  }
+  // Everything the customer controls is in place; only payment is missing.
+  const ready = order.isOpen && !order.soldOut && order.location !== null;
+
+  return (
+    <View style={styles.checkout}>
+      <View style={styles.totals}>
+        <TotalRow label={t('lunchbox.subtotal')} cents={order.subtotalCents} />
+        <TotalRow label={t('lunchbox.tax', { rate: SalesTaxPercent })} cents={order.taxCents} />
+        <TotalRow label={t('lunchbox.total')} cents={order.totalCents} bold />
+      </View>
+      {/* Grayed out with the reason, and disabled until payment exists: an order is only
+          confirmed once the server verifies payment. */}
       <Pressable
-        onPress={() => router.navigate('/cart')}
+        disabled
         role="button"
-        style={({ pressed }) => [
-          styles.summaryBar,
-          { backgroundColor: theme.primary },
-          pressed && styles.pressed,
+        aria-disabled
+        style={[
+          styles.checkoutButton,
+          ready
+            ? [styles.disabled, { backgroundColor: theme.primary }]
+            : { backgroundColor: theme.backgroundSelected },
         ]}>
-        <ThemedText type="smallBold" style={{ color: theme.onPrimary }}>
-          {label}
-        </ThemedText>
-        <ThemedText type="smallBold" style={{ color: theme.onPrimary }}>
-          {t('menu.viewCart')} →
+        <ThemedText
+          type="smallBold"
+          style={{ color: ready ? theme.onPrimary : theme.textSecondary }}>
+          {t('lunchbox.checkout')}
         </ThemedText>
       </Pressable>
+      <ThemedText type="small" themeColor="textSecondary" style={styles.note}>
+        {note}
+      </ThemedText>
+    </View>
+  );
+}
+
+function TotalRow({ label, cents, bold }: { label: string; cents: number; bold?: boolean }) {
+  return (
+    <View style={styles.totalRow}>
+      <ThemedText type={bold ? 'smallBold' : 'small'} themeColor={bold ? 'text' : 'textSecondary'}>
+        {label}
+      </ThemedText>
+      <ThemedText type={bold ? 'smallBold' : 'small'} themeColor={bold ? 'text' : 'textSecondary'}>
+        {formatPrice(cents)}
+      </ThemedText>
     </View>
   );
 }
@@ -165,18 +212,17 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
-  list: {
+  content: {
     width: '100%',
     maxWidth: MaxContentWidth,
     alignSelf: 'center',
     padding: Spacing.three,
     paddingTop: TopTabInset + Spacing.three,
-    gap: Spacing.three,
+    gap: Spacing.four,
   },
   header: {
     gap: Spacing.two,
     paddingTop: Spacing.two,
-    paddingBottom: Spacing.one,
   },
   headerDetails: {
     gap: Spacing.half,
@@ -193,26 +239,37 @@ const styles = StyleSheet.create({
     borderRadius: Radius.medium,
     borderLeftWidth: 4,
   },
-  summaryContainer: {
-    position: 'absolute',
-    width: '100%',
-    maxWidth: MaxContentWidth,
-    alignSelf: 'center',
-    paddingHorizontal: Spacing.three,
-    // Taps on either side of the bar reach the list underneath.
-    pointerEvents: 'box-none',
+  section: {
+    gap: Spacing.two,
   },
-  summaryBar: {
+  quantityRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: Spacing.three,
+    borderRadius: Radius.medium,
+  },
+  checkout: {
+    gap: Spacing.two,
+  },
+  totals: {
+    gap: Spacing.one,
+  },
+  totalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: Spacing.three,
-    paddingHorizontal: Spacing.four,
-    borderRadius: Radius.pill,
-    // Lifts the bar off the dishes scrolling beneath it.
-    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
+    paddingHorizontal: Spacing.two,
   },
-  pressed: {
-    opacity: 0.8,
+  checkoutButton: {
+    alignItems: 'center',
+    marginTop: Spacing.two,
+    paddingVertical: Spacing.three,
+    borderRadius: Radius.pill,
+  },
+  disabled: {
+    opacity: 0.5,
+  },
+  note: {
+    textAlign: 'center',
   },
 });

@@ -9,6 +9,8 @@ type QuantityStepperProps = {
   onIncrement: () => void;
   onDecrement: () => void;
   canIncrement: boolean;
+  /** Defaults to true; turn off to keep a minimum, e.g. at least one lunchbox. */
+  canDecrement?: boolean;
   addLabel: string;
   removeLabel: string;
   quantityLabel: string;
@@ -20,6 +22,7 @@ export function QuantityStepper({
   onIncrement,
   onDecrement,
   canIncrement,
+  canDecrement = true,
   addLabel,
   removeLabel,
   quantityLabel,
@@ -40,7 +43,12 @@ export function QuantityStepper({
 
   return (
     <View style={[styles.row, { backgroundColor: theme.backgroundSelected }]}>
-      <StepButton symbol="−" onPress={onDecrement} accessibilityLabel={removeLabel} />
+      <StepButton
+        symbol="−"
+        onPress={onDecrement}
+        disabled={!canDecrement}
+        accessibilityLabel={removeLabel}
+      />
       <ThemedText type="smallBold" style={styles.count} accessibilityLabel={quantityLabel}>
         {quantity}
       </ThemedText>
