@@ -60,6 +60,15 @@ export const FakeDishes = {
     },
     image: require('@/assets/images/dishes/wood-ear-eggs.jpg'),
   },
+  driedTofuGreenChili: {
+    id: 'dried-tofu-green-chili',
+    name: '尖椒干豆腐 Stir-Fried Dried Tofu with Green Chili Peppers',
+    description: {
+      en: 'Ribbons of dried tofu stir-fried with mild green chili peppers.',
+      'zh-Hans': '干豆腐丝配尖椒快炒，豆香浓郁，微辣爽口。',
+    },
+    image: require('@/assets/images/dishes/dried-tofu-green-chili.jpg'),
+  },
 } satisfies Record<string, Dish>;
 
 /** Tomorrow's lunchbox, or null if the family hasn't posted it yet. */
