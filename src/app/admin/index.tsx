@@ -19,7 +19,8 @@ export default function AdminHomeScreen() {
   const { t } = useTranslation();
   return (
     <ThemedView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.list}>
+      {/* The iOS header lets content scroll under it; "automatic" starts the list below it. */}
+      <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={styles.list}>
         {SECTIONS.map((section) => (
           <Link key={section.key} href={section.href} asChild>
             <Pressable style={({ pressed }) => pressed && styles.pressed}>
