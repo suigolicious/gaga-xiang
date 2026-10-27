@@ -47,6 +47,7 @@ export type Database = {
       dishes: {
         Row: {
           created_at: string
+          deleted_at: string | null
           description_en: string
           description_zh: string
           id: string
@@ -55,6 +56,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          deleted_at?: string | null
           description_en?: string
           description_zh?: string
           id?: string
@@ -63,6 +65,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          deleted_at?: string | null
           description_en?: string
           description_zh?: string
           id?: string
@@ -266,6 +269,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      business_today: { Args: never; Returns: string }
+      delete_dish: { Args: { dish_id: string }; Returns: string }
       is_admin: { Args: never; Returns: boolean }
       lunchboxes_remaining: { Args: { day: string }; Returns: number }
       save_lunchbox: {

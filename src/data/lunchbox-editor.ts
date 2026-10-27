@@ -1,7 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { DISH_COLUMNS, toDish, type Dish, type Lunchbox } from '@/data/lunchbox';
-import { toIsoDate, type CalendarDate } from '@/lib/ordering-window';
+import {
+  DISH_COLUMNS,
+  DISH_PHOTOS_BUCKET,
+  toDish,
+  type Dish,
+  type Lunchbox,
+} from '@/data/lunchbox';
+import { dishPhotoPath } from '@/lib/dish-photo';
+import { fromIsoDate, toIsoDate, type CalendarDate } from '@/lib/ordering-window';
 import { supabase } from '@/lib/supabase';
 
 /**
@@ -20,15 +27,64 @@ export type SavedLunchbox = LunchboxContents & {
   posted: boolean;
 };
 
-/** Every dish in the library, by name. */
+/** Every dish in the library, by name. Deleted dishes are left out. */
 export function useDishLibrary() {
   return useQuery({
     queryKey: ['dishes'],
     queryFn: async (): Promise<Dish[]> => {
-      const { data, error } = await supabase.from('dishes').select(DISH_COLUMNS).order('name');
+      const { data, error } = await supabase
+        .from('dishes')
+        .select(DISH_COLUMNS)
+        .is('deleted_at', null)
+        .order('name');
       if (error) throw error;
       return data.map(toDish);
     },
+  });
+}
+
+/**
+ * The days from `today` on whose lunchbox includes the dish, earliest first. A dish
+ * can't be deleted while this isn't empty.
+ */
+export function useUpcomingDishUses(dishId: string, today: CalendarDate) {
+  const from = toIsoDate(today);
+  return useQuery({
+    queryKey: ['dish-upcoming-uses', dishId, from],
+    // Checked fresh each time: it decides whether deleting is allowed.
+    staleTime: 0,
+    queryFn: async (): Promise<CalendarDate[]> => {
+      const { data, error } = await supabase
+        .from('lunchbox_dishes')
+        .select('delivery_date')
+        .eq('dish_id', dishId)
+        .gte('delivery_date', from)
+        .order('delivery_date');
+      if (error) throw error;
+      return data.map((row) => fromIsoDate(row.delivery_date));
+    },
+  });
+}
+
+/**
+ * Deletes a dish from the library for good. The server refuses while the dish is in
+ * today's or a later lunchbox, and keeps a hidden copy if past lunchboxes used it.
+ */
+export function useDeleteDish() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (dishId: string) => {
+      const { data: photoPath, error } = await supabase.rpc('delete_dish', { dish_id: dishId });
+      if (error) throw error;
+      // Erased entirely: remove its photo too. Best effort, since the dish is already
+      // gone; a leftover file only takes up space.
+      if (photoPath) await supabase.storage.from(DISH_PHOTOS_BUCKET).remove([photoPath]);
+    },
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['dishes'] }),
+        queryClient.invalidateQueries({ queryKey: ['dish-upcoming-uses'] }),
+      ]),
   });
 }
 
@@ -103,23 +159,81 @@ export function useSaveLunchbox() {
 export type NewDish = {
   name: string;
   description: Dish['description'];
+  /** A local JPEG from `toDishPhoto`, if a photo was chosen. */
+  photoUri?: string;
 };
 
-/** Adds a dish to the library. A photo can be added later. */
+/** Uploads a photo to dish-photos storage and returns its path there. */
+async function uploadDishPhoto(uri: string, dishName: string) {
+  const path = dishPhotoPath(dishName);
+  // React Native can't upload a local file by its URI directly; read it into memory.
+  const body = await (await fetch(uri)).arrayBuffer();
+  const { error } = await supabase.storage
+    .from(DISH_PHOTOS_BUCKET)
+    .upload(path, body, { contentType: 'image/jpeg' });
+  if (error) throw error;
+  return path;
+}
+
+/**
+ * Adds or replaces an existing dish's photo. The new photo gets its own file, so
+ * customers never see a half-uploaded one and caches can't serve the old one; the
+ * old file is removed once the dish points at the new one.
+ */
+export function useChangeDishPhoto() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ dish, photoUri }: { dish: Dish; photoUri: string }) => {
+      const { data: current, error: readError } = await supabase
+        .from('dishes')
+        .select('photo_path')
+        .eq('id', dish.id)
+        .single();
+      if (readError) throw readError;
+
+      const path = await uploadDishPhoto(photoUri, dish.name);
+      const { error } = await supabase.from('dishes').update({ photo_path: path }).eq('id', dish.id);
+      if (error) {
+        await supabase.storage.from(DISH_PHOTOS_BUCKET).remove([path]);
+        throw error;
+      }
+      // Best effort: a leftover old file only takes up space.
+      if (current.photo_path) {
+        await supabase.storage.from(DISH_PHOTOS_BUCKET).remove([current.photo_path]);
+      }
+    },
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['dishes'] }),
+        // Every lunchbox showing the dish, for customers and in the editor.
+        queryClient.invalidateQueries({ queryKey: ['lunchbox'] }),
+      ]),
+  });
+}
+
+/** Adds a dish to the library, uploading its photo first if it has one. */
 export function useCreateDish() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (dish: NewDish): Promise<Dish> => {
+      const name = dish.name.trim();
+      const photoPath = dish.photoUri ? await uploadDishPhoto(dish.photoUri, name) : null;
       const { data, error } = await supabase
         .from('dishes')
         .insert({
-          name: dish.name.trim(),
+          name,
           description_en: dish.description.en.trim(),
           description_zh: dish.description['zh-Hans'].trim(),
+          photo_path: photoPath,
         })
         .select(DISH_COLUMNS)
         .single();
-      if (error) throw error;
+      if (error) {
+        // Don't leave a photo behind that no dish uses. Best effort: the insert error
+        // is the one worth reporting.
+        if (photoPath) await supabase.storage.from(DISH_PHOTOS_BUCKET).remove([photoPath]);
+        throw error;
+      }
       return toDish(data);
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['dishes'] }),

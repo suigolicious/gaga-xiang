@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
-import { Button } from '@/components/button';
+import { PhotoField } from '@/components/admin/photo-field';
+import { Button, IconButton } from '@/components/button';
 import { DishPhoto } from '@/components/lunchbox/dish-photo';
+import { SearchField } from '@/components/search-field';
 import { TextField } from '@/components/text-field';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -17,10 +19,15 @@ type DishLibraryProps = {
   /** Dishes already in the lunchbox, left out of the list. */
   excludedIds: string[];
   onAdd: (dish: Dish) => void;
+  /** Opens the dish's details, to change its photo or delete it. */
+  onOpen: (dish: Dish) => void;
 };
 
-/** Search the dish library and add dishes to the lunchbox, or create a new dish. */
-export function DishLibrary({ dishes, excludedIds, onAdd }: DishLibraryProps) {
+/**
+ * Search the dish library and add dishes to the lunchbox, create a new dish, or open
+ * a dish's details.
+ */
+export function DishLibrary({ dishes, excludedIds, onAdd, onOpen }: DishLibraryProps) {
   const { t } = useTranslation();
   const [search, setSearch] = useState('');
   const [creating, setCreating] = useState(false);
@@ -37,12 +44,11 @@ export function DishLibrary({ dishes, excludedIds, onAdd }: DishLibraryProps) {
   return (
     <View style={styles.container}>
       {dishes.length > 0 && (
-        <TextField
-          label={t('admin.lunchbox.search')}
+        <SearchField
           value={search}
           onChangeText={setSearch}
-          autoCorrect={false}
-          autoCapitalize="none"
+          placeholder={t('admin.lunchbox.search')}
+          clearLabel={t('admin.lunchbox.clearSearch')}
         />
       )}
       {available.length === 0 ? (
@@ -61,6 +67,11 @@ export function DishLibrary({ dishes, excludedIds, onAdd }: DishLibraryProps) {
                 label={t('admin.lunchbox.add')}
                 accessibilityLabel={t('admin.lunchbox.addDish', { name: dish.name })}
                 onPress={() => onAdd(dish)}
+              />
+              <IconButton
+                symbol="⋯"
+                accessibilityLabel={t('admin.lunchbox.dishOptions', { name: dish.name })}
+                onPress={() => onOpen(dish)}
               />
             </ThemedView>
           ))}
@@ -101,10 +112,15 @@ function NewDishForm({ initialName, onCreated, onCancel }: NewDishFormProps) {
   const [name, setName] = useState(initialName);
   const [descriptionEn, setDescriptionEn] = useState('');
   const [descriptionZh, setDescriptionZh] = useState('');
+  const [photoUri, setPhotoUri] = useState<string | null>(null);
 
   const submit = () =>
     createDish.mutate(
-      { name, description: { en: descriptionEn, 'zh-Hans': descriptionZh } },
+      {
+        name,
+        description: { en: descriptionEn, 'zh-Hans': descriptionZh },
+        photoUri: photoUri ?? undefined,
+      },
       { onSuccess: onCreated },
     );
 
@@ -133,9 +149,7 @@ function NewDishForm({ initialName, onCreated, onCancel }: NewDishFormProps) {
         multiline
         style={styles.multiline}
       />
-      <ThemedText type="small" themeColor="textSecondary">
-        {t('admin.lunchbox.photoLater')}
-      </ThemedText>
+      <PhotoField uri={photoUri} onChange={setPhotoUri} disabled={createDish.isPending} />
       {createDish.isError && (
         <ThemedText type="small" themeColor="tint">
           {t('admin.lunchbox.createError')}

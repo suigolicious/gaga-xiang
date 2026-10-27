@@ -14,10 +14,15 @@ type LunchboxDishListProps = {
   /** In the order customers see them. */
   dishes: Dish[];
   onChange: (dishes: Dish[]) => void;
+  /** Opens the dish's details, to change its photo. */
+  onOpen: (dish: Dish) => void;
 };
 
-/** The dishes in a day's lunchbox: drag a dish's handle to reorder it, or remove it. */
-export function LunchboxDishList({ dishes, onChange }: LunchboxDishListProps) {
+/**
+ * The dishes in a day's lunchbox: drag a dish's handle to reorder it, open its
+ * details, or remove it.
+ */
+export function LunchboxDishList({ dishes, onChange, onOpen }: LunchboxDishListProps) {
   const { t } = useTranslation();
 
   if (dishes.length === 0) {
@@ -51,6 +56,11 @@ export function LunchboxDishList({ dishes, onChange }: LunchboxDishListProps) {
             <ThemedText type="smallBold" numberOfLines={2} style={styles.name}>
               {dish.name}
             </ThemedText>
+            <IconButton
+              symbol="⋯"
+              onPress={() => onOpen(dish)}
+              accessibilityLabel={t('admin.lunchbox.dishOptions', { name: dish.name })}
+            />
             <IconButton
               symbol="✕"
               onPress={() => onChange(dishes.filter((other) => other.id !== dish.id))}
