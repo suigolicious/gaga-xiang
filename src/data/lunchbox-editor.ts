@@ -8,7 +8,7 @@ import {
   type Lunchbox,
 } from '@/data/lunchbox';
 import { dishPhotoPath } from '@/lib/dish-photo';
-import { toIsoDate, type CalendarDate } from '@/lib/ordering-window';
+import { fromIsoDate, toIsoDate, type CalendarDate } from '@/lib/ordering-window';
 import { supabase } from '@/lib/supabase';
 
 /**
@@ -27,15 +27,64 @@ export type SavedLunchbox = LunchboxContents & {
   posted: boolean;
 };
 
-/** Every dish in the library, by name. */
+/** Every dish in the library, by name. Deleted dishes are left out. */
 export function useDishLibrary() {
   return useQuery({
     queryKey: ['dishes'],
     queryFn: async (): Promise<Dish[]> => {
-      const { data, error } = await supabase.from('dishes').select(DISH_COLUMNS).order('name');
+      const { data, error } = await supabase
+        .from('dishes')
+        .select(DISH_COLUMNS)
+        .is('deleted_at', null)
+        .order('name');
       if (error) throw error;
       return data.map(toDish);
     },
+  });
+}
+
+/**
+ * The days from `today` on whose lunchbox includes the dish, earliest first. A dish
+ * can't be deleted while this isn't empty.
+ */
+export function useUpcomingDishUses(dishId: string, today: CalendarDate) {
+  const from = toIsoDate(today);
+  return useQuery({
+    queryKey: ['dish-upcoming-uses', dishId, from],
+    // Checked fresh each time: it decides whether deleting is allowed.
+    staleTime: 0,
+    queryFn: async (): Promise<CalendarDate[]> => {
+      const { data, error } = await supabase
+        .from('lunchbox_dishes')
+        .select('delivery_date')
+        .eq('dish_id', dishId)
+        .gte('delivery_date', from)
+        .order('delivery_date');
+      if (error) throw error;
+      return data.map((row) => fromIsoDate(row.delivery_date));
+    },
+  });
+}
+
+/**
+ * Deletes a dish from the library for good. The server refuses while the dish is in
+ * today's or a later lunchbox, and keeps a hidden copy if past lunchboxes used it.
+ */
+export function useDeleteDish() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (dishId: string) => {
+      const { data: photoPath, error } = await supabase.rpc('delete_dish', { dish_id: dishId });
+      if (error) throw error;
+      // Erased entirely: remove its photo too. Best effort, since the dish is already
+      // gone; a leftover file only takes up space.
+      if (photoPath) await supabase.storage.from(DISH_PHOTOS_BUCKET).remove([photoPath]);
+    },
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['dishes'] }),
+        queryClient.invalidateQueries({ queryKey: ['dish-upcoming-uses'] }),
+      ]),
   });
 }
 

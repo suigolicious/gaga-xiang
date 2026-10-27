@@ -32,6 +32,12 @@ export function toIsoDate({ year, month, day }: CalendarDate) {
   return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }
 
+/** The calendar date in a Postgres `date` string like "2026-09-30". */
+export function fromIsoDate(iso: string): CalendarDate {
+  const [year, month, day] = iso.split('-').map(Number);
+  return { year, month, day };
+}
+
 const formatters = new Map<string, Intl.DateTimeFormat>();
 
 /** Date and hour parts of `now` in `timeZone`. Formatters are cached: they're slow to create. */
