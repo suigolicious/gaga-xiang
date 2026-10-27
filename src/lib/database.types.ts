@@ -268,6 +268,15 @@ export type Database = {
     Functions: {
       is_admin: { Args: never; Returns: boolean }
       lunchboxes_remaining: { Args: { day: string }; Returns: number }
+      save_lunchbox: {
+        Args: {
+          day: string
+          dish_ids: string[]
+          sides_en: string
+          sides_zh: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

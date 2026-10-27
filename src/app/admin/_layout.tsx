@@ -29,10 +29,10 @@ export default function AdminLayout() {
           headerLeft: process.env.EXPO_OS === 'web' ? () => null : undefined,
         }}
       />
+      <Stack.Screen name="lunchbox" options={{ title: t('admin.lunchbox.title') }} />
       <Stack.Screen name="prep-sheet" options={{ title: t('admin.prepSheet.title') }} />
       <Stack.Screen name="packing" options={{ title: t('admin.packing.title') }} />
       <Stack.Screen name="orders" options={{ title: t('admin.orders.title') }} />
-      <Stack.Screen name="menu" options={{ title: t('admin.menu.title') }} />
       <Stack.Screen name="deliveries" options={{ title: t('admin.deliveries.title') }} />
     </Stack>
   );

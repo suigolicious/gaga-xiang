@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 import type { Language } from '@/i18n';
+import type { Tables } from '@/lib/database.types';
 import { toIsoDate, type CalendarDate } from '@/lib/ordering-window';
 import { supabase } from '@/lib/supabase';
 
@@ -49,6 +50,25 @@ export type PickupLocation = {
 
 const DISH_PHOTOS_BUCKET = 'dish-photos';
 
+/** The columns `toDish` needs, for `select` strings. */
+export const DISH_COLUMNS = 'id, name, description_en, description_zh, photo_path';
+
+type DishRow = Pick<
+  Tables<'dishes'>,
+  'id' | 'name' | 'description_en' | 'description_zh' | 'photo_path'
+>;
+
+export function toDish(row: DishRow): Dish {
+  return {
+    id: row.id,
+    name: row.name,
+    description: { en: row.description_en, 'zh-Hans': row.description_zh },
+    image: row.photo_path
+      ? supabase.storage.from(DISH_PHOTOS_BUCKET).getPublicUrl(row.photo_path).data.publicUrl
+      : undefined,
+  };
+}
+
 export function useBusinessSettings() {
   return useQuery({
     queryKey: ['business-settings'],
@@ -96,23 +116,15 @@ export function useLunchbox(date: CalendarDate | null) {
     queryFn: async (): Promise<Lunchbox | null> => {
       const { data, error } = await supabase
         .from('lunchboxes')
-        .select(
-          'sides_en, sides_zh, lunchbox_dishes(position, dishes(id, name, description_en, description_zh, photo_path))',
-        )
+        // `as const` keeps the exact string, which the Supabase client reads to type the result.
+        .select(`sides_en, sides_zh, lunchbox_dishes(position, dishes(${DISH_COLUMNS}))` as const)
         .eq('delivery_date', day!)
         .maybeSingle();
       if (error) throw error;
       if (!data) return null;
       const dishes = [...data.lunchbox_dishes]
         .sort((a, b) => a.position - b.position)
-        .map(({ dishes: dish }) => ({
-          id: dish.id,
-          name: dish.name,
-          description: { en: dish.description_en, 'zh-Hans': dish.description_zh },
-          image: dish.photo_path
-            ? supabase.storage.from(DISH_PHOTOS_BUCKET).getPublicUrl(dish.photo_path).data.publicUrl
-            : undefined,
-        }));
+        .map(({ dishes: dish }) => toDish(dish));
       return { dishes, sides: { en: data.sides_en, 'zh-Hans': data.sides_zh } };
     },
   });
