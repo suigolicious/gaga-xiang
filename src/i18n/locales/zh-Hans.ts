@@ -113,6 +113,7 @@ const zhHans: Translations = {
       saveError: '无法保存盒饭，请检查网络后重试。',
       library: '菜品库',
       search: '搜索菜品',
+      clearSearch: '清除搜索',
       add: '添加',
       addDish: '将{{name}}加入盒饭',
       allAdded: '菜品库里的菜都已在这份盒饭中。',

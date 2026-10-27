@@ -5,6 +5,7 @@ import { StyleSheet, View } from 'react-native';
 import { PhotoField } from '@/components/admin/photo-field';
 import { Button, IconButton } from '@/components/button';
 import { DishPhoto } from '@/components/lunchbox/dish-photo';
+import { SearchField } from '@/components/search-field';
 import { TextField } from '@/components/text-field';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -43,12 +44,11 @@ export function DishLibrary({ dishes, excludedIds, onAdd, onOpen }: DishLibraryP
   return (
     <View style={styles.container}>
       {dishes.length > 0 && (
-        <TextField
-          label={t('admin.lunchbox.search')}
+        <SearchField
           value={search}
           onChangeText={setSearch}
-          autoCorrect={false}
-          autoCapitalize="none"
+          placeholder={t('admin.lunchbox.search')}
+          clearLabel={t('admin.lunchbox.clearSearch')}
         />
       )}
       {available.length === 0 ? (

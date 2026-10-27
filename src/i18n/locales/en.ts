@@ -117,6 +117,7 @@ const en = {
       saveError: "Couldn't save the lunchbox. Check your connection and try again.",
       library: 'Dish library',
       search: 'Search dishes',
+      clearSearch: 'Clear search',
       add: 'Add',
       addDish: 'Add {{name}} to the lunchbox',
       allAdded: 'Every dish in the library is already in this lunchbox.',
