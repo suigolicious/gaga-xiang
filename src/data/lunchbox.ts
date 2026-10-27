@@ -48,7 +48,7 @@ export type PickupLocation = {
   pickupNote: Record<Language, string>;
 };
 
-const DISH_PHOTOS_BUCKET = 'dish-photos';
+export const DISH_PHOTOS_BUCKET = 'dish-photos';
 
 /** The columns `toDish` needs, for `select` strings. */
 export const DISH_COLUMNS = 'id, name, description_en, description_zh, photo_path';

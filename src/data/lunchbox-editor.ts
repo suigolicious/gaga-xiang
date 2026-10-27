@@ -1,6 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { DISH_COLUMNS, toDish, type Dish, type Lunchbox } from '@/data/lunchbox';
+import {
+  DISH_COLUMNS,
+  DISH_PHOTOS_BUCKET,
+  toDish,
+  type Dish,
+  type Lunchbox,
+} from '@/data/lunchbox';
+import { dishPhotoPath } from '@/lib/dish-photo';
 import { toIsoDate, type CalendarDate } from '@/lib/ordering-window';
 import { supabase } from '@/lib/supabase';
 
@@ -103,23 +110,45 @@ export function useSaveLunchbox() {
 export type NewDish = {
   name: string;
   description: Dish['description'];
+  /** A local JPEG from `toDishPhoto`, if a photo was chosen. */
+  photoUri?: string;
 };
 
-/** Adds a dish to the library. A photo can be added later. */
+/** Uploads a photo to dish-photos storage and returns its path there. */
+async function uploadDishPhoto(uri: string, dishName: string) {
+  const path = dishPhotoPath(dishName);
+  // React Native can't upload a local file by its URI directly; read it into memory.
+  const body = await (await fetch(uri)).arrayBuffer();
+  const { error } = await supabase.storage
+    .from(DISH_PHOTOS_BUCKET)
+    .upload(path, body, { contentType: 'image/jpeg' });
+  if (error) throw error;
+  return path;
+}
+
+/** Adds a dish to the library, uploading its photo first if it has one. */
 export function useCreateDish() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (dish: NewDish): Promise<Dish> => {
+      const name = dish.name.trim();
+      const photoPath = dish.photoUri ? await uploadDishPhoto(dish.photoUri, name) : null;
       const { data, error } = await supabase
         .from('dishes')
         .insert({
-          name: dish.name.trim(),
+          name,
           description_en: dish.description.en.trim(),
           description_zh: dish.description['zh-Hans'].trim(),
+          photo_path: photoPath,
         })
         .select(DISH_COLUMNS)
         .single();
-      if (error) throw error;
+      if (error) {
+        // Don't leave a photo behind that no dish uses. Best effort: the insert error
+        // is the one worth reporting.
+        if (photoPath) await supabase.storage.from(DISH_PHOTOS_BUCKET).remove([photoPath]);
+        throw error;
+      }
       return toDish(data);
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['dishes'] }),

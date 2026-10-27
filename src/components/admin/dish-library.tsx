@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
+import { PhotoField } from '@/components/admin/photo-field';
 import { Button } from '@/components/button';
 import { DishPhoto } from '@/components/lunchbox/dish-photo';
 import { TextField } from '@/components/text-field';
@@ -101,10 +102,15 @@ function NewDishForm({ initialName, onCreated, onCancel }: NewDishFormProps) {
   const [name, setName] = useState(initialName);
   const [descriptionEn, setDescriptionEn] = useState('');
   const [descriptionZh, setDescriptionZh] = useState('');
+  const [photoUri, setPhotoUri] = useState<string | null>(null);
 
   const submit = () =>
     createDish.mutate(
-      { name, description: { en: descriptionEn, 'zh-Hans': descriptionZh } },
+      {
+        name,
+        description: { en: descriptionEn, 'zh-Hans': descriptionZh },
+        photoUri: photoUri ?? undefined,
+      },
       { onSuccess: onCreated },
     );
 
@@ -133,9 +139,7 @@ function NewDishForm({ initialName, onCreated, onCancel }: NewDishFormProps) {
         multiline
         style={styles.multiline}
       />
-      <ThemedText type="small" themeColor="textSecondary">
-        {t('admin.lunchbox.photoLater')}
-      </ThemedText>
+      <PhotoField uri={photoUri} onChange={setPhotoUri} disabled={createDish.isPending} />
       {createDish.isError && (
         <ThemedText type="small" themeColor="tint">
           {t('admin.lunchbox.createError')}
