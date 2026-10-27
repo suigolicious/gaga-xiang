@@ -1,4 +1,5 @@
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
+import { launchImageLibraryAsync } from 'expo-image-picker';
 
 /** Side of an uploaded dish photo, in pixels: sharp on a tablet, quick to upload. */
 const PHOTO_SIZE = 1200;
@@ -22,6 +23,22 @@ export async function toDishPhoto(uri: string): Promise<string> {
   const image = await context.renderAsync();
   const saved = await image.saveAsync({ format: SaveFormat.JPEG, compress: 0.8 });
   return saved.uri;
+}
+
+/**
+ * Lets the user pick a photo from their library, for `toDishPhoto` to prepare.
+ * Returns its local URI, or null if they cancel. Opens the system photo picker, which
+ * needs no permission prompt. On iOS and Android it lets the user crop to a square
+ * first; on web `toDishPhoto` crops the center. Browsers don't report cancelling, so
+ * on web this may never resolve: don't show anything as loading until it does.
+ */
+export async function pickPhoto(): Promise<string | null> {
+  const result = await launchImageLibraryAsync({
+    mediaTypes: ['images'],
+    allowsEditing: true,
+    aspect: [1, 1],
+  });
+  return result.canceled ? null : result.assets[0].uri;
 }
 
 /**

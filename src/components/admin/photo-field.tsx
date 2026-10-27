@@ -1,5 +1,4 @@
 import { Image } from 'expo-image';
-import { launchImageLibraryAsync } from 'expo-image-picker';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
@@ -8,7 +7,7 @@ import { Button } from '@/components/button';
 import { ThemedText } from '@/components/themed-text';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { toDishPhoto } from '@/lib/dish-photo';
+import { pickPhoto, toDishPhoto } from '@/lib/dish-photo';
 
 type PhotoFieldProps = {
   /** Local URI of the prepared photo, or null for none. */
@@ -18,8 +17,8 @@ type PhotoFieldProps = {
 };
 
 /**
- * Pick a dish photo from the photo library. It's cropped square and shrunk right
- * away, so the preview shows exactly what will be uploaded.
+ * Pick a photo for a new dish from the photo library. It's cropped square and shrunk
+ * right away, so the preview shows exactly what will be uploaded.
  */
 export function PhotoField({ uri, onChange, disabled }: PhotoFieldProps) {
   const { t } = useTranslation();
@@ -28,18 +27,12 @@ export function PhotoField({ uri, onChange, disabled }: PhotoFieldProps) {
   const [failed, setFailed] = useState(false);
 
   const pick = async () => {
-    // Opens the system photo picker, which needs no permission prompt. On iOS and
-    // Android it lets the user crop to a square first; on web we crop the center.
-    const result = await launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [1, 1],
-    });
-    if (result.canceled) return;
+    const picked = await pickPhoto();
+    if (!picked) return;
     setPreparing(true);
     setFailed(false);
     try {
-      onChange(await toDishPhoto(result.assets[0].uri));
+      onChange(await toDishPhoto(picked));
     } catch {
       setFailed(true);
     } finally {

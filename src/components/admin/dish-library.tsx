@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
-import { DishSheet } from '@/components/admin/dish-sheet';
 import { PhotoField } from '@/components/admin/photo-field';
 import { Button, IconButton } from '@/components/button';
 import { DishPhoto } from '@/components/lunchbox/dish-photo';
@@ -13,26 +12,24 @@ import { Radius, Spacing } from '@/constants/theme';
 import { useCreateDish } from '@/data/lunchbox-editor';
 import type { Dish } from '@/data/lunchbox';
 import { useTheme } from '@/hooks/use-theme';
-import type { CalendarDate } from '@/lib/ordering-window';
 
 type DishLibraryProps = {
   dishes: Dish[];
   /** Dishes already in the lunchbox, left out of the list. */
   excludedIds: string[];
   onAdd: (dish: Dish) => void;
-  /** Today in the business's time zone, for checking whether a dish can be deleted. */
-  today: CalendarDate;
+  /** Opens the dish's details, to change its photo or delete it. */
+  onOpen: (dish: Dish) => void;
 };
 
 /**
  * Search the dish library and add dishes to the lunchbox, create a new dish, or open
- * a dish's details to delete it.
+ * a dish's details.
  */
-export function DishLibrary({ dishes, excludedIds, onAdd, today }: DishLibraryProps) {
+export function DishLibrary({ dishes, excludedIds, onAdd, onOpen }: DishLibraryProps) {
   const { t } = useTranslation();
   const [search, setSearch] = useState('');
   const [creating, setCreating] = useState(false);
-  const [openDish, setOpenDish] = useState<Dish | null>(null);
 
   const term = search.trim().toLowerCase();
   const available = dishes.filter(
@@ -74,13 +71,12 @@ export function DishLibrary({ dishes, excludedIds, onAdd, today }: DishLibraryPr
               <IconButton
                 symbol="⋯"
                 accessibilityLabel={t('admin.lunchbox.dishOptions', { name: dish.name })}
-                onPress={() => setOpenDish(dish)}
+                onPress={() => onOpen(dish)}
               />
             </ThemedView>
           ))}
         </View>
       )}
-      <DishSheet dish={openDish} today={today} onClose={() => setOpenDish(null)} />
       {creating ? (
         <NewDishForm
           // A search that found nothing is usually the new dish's name.

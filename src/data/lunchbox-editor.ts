@@ -175,6 +175,42 @@ async function uploadDishPhoto(uri: string, dishName: string) {
   return path;
 }
 
+/**
+ * Adds or replaces an existing dish's photo. The new photo gets its own file, so
+ * customers never see a half-uploaded one and caches can't serve the old one; the
+ * old file is removed once the dish points at the new one.
+ */
+export function useChangeDishPhoto() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ dish, photoUri }: { dish: Dish; photoUri: string }) => {
+      const { data: current, error: readError } = await supabase
+        .from('dishes')
+        .select('photo_path')
+        .eq('id', dish.id)
+        .single();
+      if (readError) throw readError;
+
+      const path = await uploadDishPhoto(photoUri, dish.name);
+      const { error } = await supabase.from('dishes').update({ photo_path: path }).eq('id', dish.id);
+      if (error) {
+        await supabase.storage.from(DISH_PHOTOS_BUCKET).remove([path]);
+        throw error;
+      }
+      // Best effort: a leftover old file only takes up space.
+      if (current.photo_path) {
+        await supabase.storage.from(DISH_PHOTOS_BUCKET).remove([current.photo_path]);
+      }
+    },
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['dishes'] }),
+        // Every lunchbox showing the dish, for customers and in the editor.
+        queryClient.invalidateQueries({ queryKey: ['lunchbox'] }),
+      ]),
+  });
+}
+
 /** Adds a dish to the library, uploading its photo first if it has one. */
 export function useCreateDish() {
   const queryClient = useQueryClient();

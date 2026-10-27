@@ -10,8 +10,9 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Radius, Spacing } from '@/constants/theme';
 import type { Dish } from '@/data/lunchbox';
-import { useDeleteDish, useUpcomingDishUses } from '@/data/lunchbox-editor';
+import { useChangeDishPhoto, useDeleteDish, useUpcomingDishUses } from '@/data/lunchbox-editor';
 import { useLanguage } from '@/i18n/language-provider';
+import { pickPhoto, toDishPhoto } from '@/lib/dish-photo';
 import { formatCalendarDate } from '@/lib/format';
 import type { CalendarDate } from '@/lib/ordering-window';
 
@@ -65,6 +66,7 @@ function DishSheetCard({ dish, today, onClose }: { dish: Dish; today: CalendarDa
     content = (
       <>
         <DishPhoto dish={dish} style={styles.photo} />
+        <PhotoButton dish={dish} />
         <ThemedText type="smallBold">{dish.name}</ThemedText>
         {dish.description[language] !== '' && (
           <ThemedText themeColor="textSecondary">{dish.description[language]}</ThemedText>
@@ -144,7 +146,71 @@ function DishSheetCard({ dish, today, onClose }: { dish: Dish; today: CalendarDa
   );
 }
 
+/** Adds or replaces the dish's photo, saving it as soon as one is picked. */
+function PhotoButton({ dish }: { dish: Dish }) {
+  const { t } = useTranslation();
+  const changePhoto = useChangeDishPhoto();
+  const [preparing, setPreparing] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const busy = preparing || changePhoto.isPending;
+
+  const pick = async () => {
+    const picked = await pickPhoto();
+    if (!picked) return;
+    setFailed(false);
+    changePhoto.reset();
+    setPreparing(true);
+    let photoUri;
+    try {
+      photoUri = await toDishPhoto(picked);
+    } catch {
+      setFailed(true);
+      return;
+    } finally {
+      setPreparing(false);
+    }
+    changePhoto.mutate({ dish, photoUri });
+  };
+
+  let message: string | null = null;
+  if (failed) message = t('admin.lunchbox.photoError');
+  else if (changePhoto.isError) message = t('admin.lunchbox.photoSaveError');
+  else if (changePhoto.isSuccess) message = t('admin.lunchbox.photoSaved');
+
+  return (
+    <View style={styles.photoRow}>
+      <Button
+        label={
+          busy
+            ? t('admin.lunchbox.savingPhoto')
+            : dish.image
+              ? t('admin.lunchbox.changePhoto')
+              : t('admin.lunchbox.addPhoto')
+        }
+        onPress={pick}
+        disabled={busy}
+      />
+      {message && (
+        <ThemedText
+          type="small"
+          themeColor={changePhoto.isSuccess ? 'textSecondary' : 'tint'}
+          style={styles.photoMessage}>
+          {message}
+        </ThemedText>
+      )}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
+  photoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.three,
+  },
+  photoMessage: {
+    flex: 1,
+  },
   root: {
     flex: 1,
   },

@@ -5,6 +5,7 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 
 import { DishLibrary } from '@/components/admin/dish-library';
+import { DishSheet } from '@/components/admin/dish-sheet';
 import { LunchboxDishList } from '@/components/admin/lunchbox-dish-list';
 import { Button, IconButton } from '@/components/button';
 import { TextField } from '@/components/text-field';
@@ -60,6 +61,9 @@ export default function AdminLunchboxScreen() {
   const [draft, setDraft] = useState<LunchboxContents | null>(null);
   const contents = draft ?? saved.data ?? null;
   const dirty = draft !== null && saved.data !== undefined && !sameContents(draft, saved.data);
+  // The dish whose details are open. An id rather than the dish, so the details show
+  // changes such as a new photo, and close by themselves once the dish is deleted.
+  const [openDishId, setOpenDishId] = useState<string | null>(null);
 
   const edit = (changes: Partial<LunchboxContents>) => {
     if (contents) setDraft({ ...contents, ...changes });
@@ -105,6 +109,7 @@ export default function AdminLunchboxScreen() {
           <LunchboxDishList
             dishes={dishes}
             onChange={(next) => edit({ dishIds: next.map((dish) => dish.id) })}
+            onOpen={(dish) => setOpenDishId(dish.id)}
           />
         </Section>
         <Section title={t('admin.lunchbox.sides')}>
@@ -163,9 +168,14 @@ export default function AdminLunchboxScreen() {
             dishes={library.data}
             excludedIds={contents.dishIds}
             onAdd={(dish) => edit({ dishIds: [...contents.dishIds, dish.id] })}
-            today={addDays(window.deliveryDate, -1)}
+            onOpen={(dish) => setOpenDishId(dish.id)}
           />
         </Section>
+        <DishSheet
+          dish={dishesById.get(openDishId ?? '') ?? null}
+          today={addDays(window.deliveryDate, -1)}
+          onClose={() => setOpenDishId(null)}
+        />
       </>
     );
   }
