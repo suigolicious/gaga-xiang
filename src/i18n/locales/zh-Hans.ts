@@ -133,6 +133,7 @@ const zhHans: Translations = {
       creating: '添加中…',
       createError: '无法添加菜品，请检查网络后重试。',
       cancel: '取消',
+close: '关闭',      dishOptions: '{{name}}的详情和删除',      deleteDish: '删除菜品',      inUse: '这道菜在{{dates}}的盒饭里。请先从这些日期中移除，才能删除。',      usesError: '无法确认这道菜是否在即将到来的盒饭中，请关闭后重试。',      dateSeparator: '、',      confirmTitle: '删除{{name}}？',      confirmBody: '这道菜将从菜品库中永久删除，无法恢复。',      confirmYes: '确定删除',      slideTitle: '滑到最右边即可删除{{name}}。',      slideToDelete: '滑动删除',      deleting: '删除中…',      deleteInUse: '这道菜刚被加入即将到来的盒饭，已无法删除。',      deleteError: '无法删除菜品，请检查网络后重试。',
     },
     prepSheet: {
       title: '备菜单',

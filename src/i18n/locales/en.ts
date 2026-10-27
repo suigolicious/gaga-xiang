@@ -137,6 +137,7 @@ const en = {
       creating: 'Adding…',
       createError: "Couldn't add the dish. Check your connection and try again.",
       cancel: 'Cancel',
+close: 'Close',      dishOptions: 'Details and delete for {{name}}',      deleteDish: 'Delete dish',      inUse: 'This dish is in the lunchbox for {{dates}}. Remove it from those days to delete it.',      usesError: "Couldn't check whether this dish is in an upcoming lunchbox. Close and try again.",      dateSeparator: ', ',      confirmTitle: 'Delete {{name}}?',      confirmBody: "It will be removed from the dish library for good. This can't be undone.",      confirmYes: 'Yes, delete it',      slideTitle: 'Slide all the way to delete {{name}}.',      slideToDelete: 'Slide to delete',      deleting: 'Deleting…',      deleteInUse: 'This dish was just added to an upcoming lunchbox, so it can no longer be deleted.',      deleteError: "Couldn't delete the dish. Check your connection and try again.",
     },
     prepSheet: {
       title: 'Prep sheet',

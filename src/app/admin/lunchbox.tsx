@@ -86,7 +86,7 @@ export default function AdminLunchboxScreen() {
         />
       </View>
     );
-  } else if (!date || !contents || !saved.data || !library.data) {
+  } else if (!date || !window || !contents || !saved.data || !library.data) {
     body = <ActivityIndicator style={styles.loading} />;
   } else {
     const dishesById = new Map(library.data.map((dish) => [dish.id, dish]));
@@ -140,7 +140,11 @@ export default function AdminLunchboxScreen() {
                     : t('admin.lunchbox.post')
               }
               onPress={() =>
-                save.mutate({ date, contents }, { onSuccess: () => setDraft(null) })
+                save.mutate(
+                  // Leaves out any dish deleted from the library since it was added.
+                  { date, contents: { ...contents, dishIds: dishes.map((dish) => dish.id) } },
+                  { onSuccess: () => setDraft(null) },
+                )
               }
               disabled={!dirty || dishes.length === 0 || save.isPending}
             />
@@ -159,6 +163,7 @@ export default function AdminLunchboxScreen() {
             dishes={library.data}
             excludedIds={contents.dishIds}
             onAdd={(dish) => edit({ dishIds: [...contents.dishIds, dish.id] })}
+            today={addDays(window.deliveryDate, -1)}
           />
         </Section>
       </>
