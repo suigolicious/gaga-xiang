@@ -98,6 +98,8 @@ const en = {
       unsaved: 'Save or discard your changes to switch days.',
       dishes: 'In the lunchbox',
       noDishes: 'No dishes yet. Add them from the dish library below.',
+      dragHint: 'Drag by the handle to change the order customers see.',
+      reorder: 'Reorder {{name}}',
       moveUp: 'Move {{name}} up',
       moveDown: 'Move {{name}} down',
       removeDish: 'Remove {{name}}',

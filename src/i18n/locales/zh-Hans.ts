@@ -94,6 +94,8 @@ const zhHans: Translations = {
       unsaved: '请先保存或放弃更改，再切换日期。',
       dishes: '盒饭菜品',
       noDishes: '还没有菜品，请从下方菜品库中添加。',
+      dragHint: '按住左侧把手拖动，调整顾客看到的菜品顺序。',
+      reorder: '调整{{name}}的顺序',
       moveUp: '将{{name}}上移',
       moveDown: '将{{name}}下移',
       removeDish: '移除{{name}}',
