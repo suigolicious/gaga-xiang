@@ -2,7 +2,8 @@ import '@/i18n';
 
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Stack, ThemeProvider } from 'expo-router';
-import { useColorScheme } from 'react-native';
+import { StyleSheet, useColorScheme } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { AuthProvider, useAuth } from '@/auth/auth-provider';
 import { NavigationThemes } from '@/constants/theme';
@@ -12,17 +13,26 @@ import { queryClient } from '@/lib/query-client';
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   return (
-    <QueryClientProvider client={queryClient}>
-      <LanguageProvider>
-        <AuthProvider>
-          <ThemeProvider value={NavigationThemes[colorScheme === 'dark' ? 'dark' : 'light']}>
-            <RootStack />
-          </ThemeProvider>
-        </AuthProvider>
-      </LanguageProvider>
-    </QueryClientProvider>
+    // Gestures such as dragging to reorder only work inside this.
+    <GestureHandlerRootView style={styles.root}>
+      <QueryClientProvider client={queryClient}>
+        <LanguageProvider>
+          <AuthProvider>
+            <ThemeProvider value={NavigationThemes[colorScheme === 'dark' ? 'dark' : 'light']}>
+              <RootStack />
+            </ThemeProvider>
+          </AuthProvider>
+        </LanguageProvider>
+      </QueryClientProvider>
+    </GestureHandlerRootView>
   );
 }
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+});
 
 function RootStack() {
   const { ready, isAdmin } = useAuth();

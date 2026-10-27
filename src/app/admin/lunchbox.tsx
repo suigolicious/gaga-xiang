@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
+// Gesture Handler's version, so dragging a dish and scrolling the page don't fight.
+import { ScrollView } from 'react-native-gesture-handler';
 
 import { DishLibrary } from '@/components/admin/dish-library';
 import { LunchboxDishList } from '@/components/admin/lunchbox-dish-list';
