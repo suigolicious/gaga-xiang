@@ -95,6 +95,13 @@ export type Database = {
             foreignKeyName: "lunchbox_dishes_delivery_date_fkey"
             columns: ["delivery_date"]
             isOneToOne: false
+            referencedRelation: "lunchbox_sales"
+            referencedColumns: ["delivery_date"]
+          },
+          {
+            foreignKeyName: "lunchbox_dishes_delivery_date_fkey"
+            columns: ["delivery_date"]
+            isOneToOne: false
             referencedRelation: "lunchboxes"
             referencedColumns: ["delivery_date"]
           },
@@ -189,6 +196,13 @@ export type Database = {
             foreignKeyName: "orders_delivery_date_fkey"
             columns: ["delivery_date"]
             isOneToOne: false
+            referencedRelation: "lunchbox_sales"
+            referencedColumns: ["delivery_date"]
+          },
+          {
+            foreignKeyName: "orders_delivery_date_fkey"
+            columns: ["delivery_date"]
+            isOneToOne: false
             referencedRelation: "lunchboxes"
             referencedColumns: ["delivery_date"]
           },
@@ -266,13 +280,27 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      lunchbox_sales: {
+        Row: {
+          delivery_date: string | null
+          dish_names: string[] | null
+          picked_up: number | null
+          sides_en: string | null
+          sides_zh: string | null
+          sold: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       business_today: { Args: never; Returns: string }
       delete_dish: { Args: { dish_id: string }; Returns: string }
       is_admin: { Args: never; Returns: boolean }
       lunchboxes_remaining: { Args: { day: string }; Returns: number }
+      place_test_order: {
+        Args: { day: string; location_id: string; quantity: number }
+        Returns: string
+      }
       save_lunchbox: {
         Args: {
           day: string
