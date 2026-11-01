@@ -162,11 +162,6 @@ const zhHans: Translations = {
       summary: '按顾客分装订单',
       description: '每位顾客订单中需要打包的菜品。',
     },
-    orders: {
-      title: '订单管理',
-      summary: '管理订单和退款',
-      description: '管理订单并处理退款。',
-    },
     deliveries: {
       title: '配送',
       summary: '早间配送站点',

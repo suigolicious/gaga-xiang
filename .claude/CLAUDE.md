@@ -58,7 +58,7 @@ commit history matter.
 - Prep sheet: number of lunchboxes to make for the next day, and that day's dishes
 - Packing list per location: customer names and quantities, with a way to check people off at pickup
 - Delivery run (used on a phone in the car): an "Arrived" button per location that texts every customer with an order for that location that day, including the location's pickup note
-- Order management and refunds
+- Not in the MVP: order management and refunds in the app. Order problems are fixed by hand (e.g. refunds over Zelle)
 - Pickup location management
 
 ## Key business rules (enforce on the server, not just the UI)

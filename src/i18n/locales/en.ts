@@ -166,11 +166,6 @@ const en = {
       summary: 'Per-customer orders',
       description: "What goes into each customer's order.",
     },
-    orders: {
-      title: 'Orders',
-      summary: 'Manage orders and refunds',
-      description: 'Manage orders and issue refunds.',
-    },
     deliveries: {
       title: 'Deliveries',
       summary: 'Morning stop list',

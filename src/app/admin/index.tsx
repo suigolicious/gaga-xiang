@@ -11,7 +11,6 @@ const SECTIONS = [
   { href: '/admin/lunchbox', key: 'lunchbox' },
   { href: '/admin/prep-sheet', key: 'prepSheet' },
   { href: '/admin/packing', key: 'packing' },
-  { href: '/admin/orders', key: 'orders' },
   { href: '/admin/deliveries', key: 'deliveries' },
 ] as const satisfies readonly { href: Href; key: string }[];
 
