@@ -19,12 +19,20 @@ export function formatPrice(cents: number) {
   return `$${dollars.format(cents / 100)}`;
 }
 
-/** e.g. "Tuesday, September 29" or "9月29日星期二". */
-export function formatCalendarDate({ year, month, day }: CalendarDate, language: Language) {
+/**
+ * e.g. "Tuesday, September 29" or "9月29日星期二". With `withYear`, e.g.
+ * "Tuesday, September 29, 2026" or "2026年9月29日星期二".
+ */
+export function formatCalendarDate(
+  { year, month, day }: CalendarDate,
+  language: Language,
+  { withYear = false }: { withYear?: boolean } = {},
+) {
   // Format in UTC so the date doesn't shift with the device's time zone.
   return new Intl.DateTimeFormat(IntlLocales[language], {
     timeZone: 'UTC',
     weekday: 'long',
+    year: withYear ? 'numeric' : undefined,
     month: 'long',
     day: 'numeric',
   }).format(new Date(Date.UTC(year, month - 1, day)));

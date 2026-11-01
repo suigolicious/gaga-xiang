@@ -55,10 +55,11 @@ commit history matter.
 ### Admin (family)
 - Dish library: each dish is entered once (name, photo, descriptions) and reused on any day
 - Daily lunchbox editor: pick the date and the dishes from the library, plus what comes with it (e.g. rice). Price and cap are set once, not per day
-- Prep sheet: number of lunchboxes to make for the next day, and that day's dishes
+- Prep sheet: number of lunchboxes to make (today before the cutoff, tomorrow after it), per location, and that day's dishes; plus tomorrow's count so far while ordering is open
+- Sales history: every day's lunchbox (dish names and sides), how many were made, and how many were picked up
 - Packing list per location: customer names and quantities, with a way to check people off at pickup
 - Delivery run (used on a phone in the car): an "Arrived" button per location that texts every customer with an order for that location that day, including the location's pickup note
-- Order management and refunds
+- Not in the MVP: order management and refunds in the app. Order problems are fixed by hand (e.g. refunds over Zelle)
 - Pickup location management
 
 ## Key business rules (enforce on the server, not just the UI)

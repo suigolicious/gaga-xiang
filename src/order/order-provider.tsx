@@ -2,14 +2,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, use, useEffect, useState, type PropsWithChildren } from 'react';
 
 import {
-  useBusinessSettings,
   useLunchboxesRemaining,
   usePickupLocations,
   type BusinessSettings,
   type PickupLocation,
 } from '@/data/lunchbox';
-import { useNow } from '@/hooks/use-now';
-import { getOrderingWindow, type OrderingWindow } from '@/lib/ordering-window';
+import { useOrderingWindow } from '@/hooks/use-ordering-window';
+import type { OrderingWindow } from '@/lib/ordering-window';
 import { supabase } from '@/lib/supabase';
 import { salesTaxCents } from '@/lib/tax';
 
@@ -60,13 +59,8 @@ const OrderContext = createContext<OrderContextValue | null>(null);
  * everything at checkout.
  */
 export function OrderProvider({ children }: PropsWithChildren) {
-  const now = useNow();
-  const settings = useBusinessSettings().data ?? null;
+  const { settings, window } = useOrderingWindow();
   const locations = usePickupLocations().data;
-  const window =
-    now && settings
-      ? getOrderingWindow(now, { timeZone: settings.timeZone, cutoffHour: settings.orderCutoffHour })
-      : null;
   const available = useLunchboxesRemaining(window?.orderDate ?? null).data ?? null;
   const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT);
   const [loaded, setLoaded] = useState(false);

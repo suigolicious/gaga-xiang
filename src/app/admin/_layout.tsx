@@ -31,8 +31,8 @@ export default function AdminLayout() {
       />
       <Stack.Screen name="lunchbox" options={{ title: t('admin.lunchbox.title') }} />
       <Stack.Screen name="prep-sheet" options={{ title: t('admin.prepSheet.title') }} />
+      <Stack.Screen name="history" options={{ title: t('admin.history.title') }} />
       <Stack.Screen name="packing" options={{ title: t('admin.packing.title') }} />
-      <Stack.Screen name="orders" options={{ title: t('admin.orders.title') }} />
       <Stack.Screen name="deliveries" options={{ title: t('admin.deliveries.title') }} />
     </Stack>
   );
