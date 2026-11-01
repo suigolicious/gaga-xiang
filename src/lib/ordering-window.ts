@@ -18,6 +18,8 @@ type OrderingRules = {
   timeZone: string;
   /** Orders for a day close at this hour (0-23) the day before. */
   cutoffHour: number;
+  /** Development only: keep ordering for tomorrow open at any hour. */
+  ignoreCutoff?: boolean;
 };
 
 /** The calendar date `days` after `date`. */
@@ -64,9 +66,12 @@ function partsIn(now: Date, timeZone: string) {
  * After the cutoff, ordering is closed until midnight rather than moving on to the
  * day after tomorrow.
  */
-export function getOrderingWindow(now: Date, { timeZone, cutoffHour }: OrderingRules): OrderingWindow {
+export function getOrderingWindow(
+  now: Date,
+  { timeZone, cutoffHour, ignoreCutoff = false }: OrderingRules,
+): OrderingWindow {
   const parts = partsIn(now, timeZone);
   const deliveryDate = addDays({ year: parts.year, month: parts.month, day: parts.day }, 1);
-  const isOpen = parts.hour < cutoffHour;
+  const isOpen = ignoreCutoff || parts.hour < cutoffHour;
   return { deliveryDate, isOpen, orderDate: isOpen ? deliveryDate : addDays(deliveryDate, 1) };
 }
