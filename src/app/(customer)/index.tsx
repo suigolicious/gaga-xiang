@@ -11,6 +11,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { MaxContentWidth, Radius, Spacing, TopTabInset } from '@/constants/theme';
 import { useBusinessSettings, useLunchbox, usePickupLocations } from '@/data/lunchbox';
+import { isNotEnoughLeft, usePlaceTestOrder } from '@/data/orders';
 import { useTheme } from '@/hooks/use-theme';
 import { useLanguage } from '@/i18n/language-provider';
 import { formatCalendarDate, formatPrice } from '@/lib/format';
@@ -183,10 +184,14 @@ function Checkout() {
   const order = useOrder();
   const auth = useAuth();
   const needsSignIn = auth.ready && !auth.session;
+  const testOrder = usePlaceTestOrder();
+  // TEST CHECKOUT (temporary, until payment exists): admins can place orders without
+  // paying, to try the prep sheet. Everyone else still sees checkout grayed out.
+  const testCheckout = auth.isAdmin;
 
   // Why checkout isn't available yet, most important first. Null when the reason is
   // signing in, which gets a link instead.
-  let note: string | null = t('lunchbox.paymentSoon');
+  let note: string | null = testCheckout ? t('lunchbox.testCheckout') : t('lunchbox.paymentSoon');
   if (order.window && !order.isOpen) {
     const nextDelivery = formatCalendarDate(order.window.orderDate, language);
     note = t('lunchbox.closedCheckout', { date: nextDelivery });
@@ -199,6 +204,29 @@ function Checkout() {
   }
   // Everything the customer controls is in place; only payment is missing.
   const ready = order.isOpen && !order.soldOut && order.location !== null && !needsSignIn;
+  const canPlaceTestOrder = testCheckout && ready && !testOrder.isPending;
+
+  if (testCheckout && ready) {
+    if (testOrder.isError) {
+      note = isNotEnoughLeft(testOrder.error)
+        ? t('lunchbox.soldOutCheckout')
+        : t('lunchbox.testCheckoutError');
+    } else if (testOrder.isSuccess) {
+      note = t('lunchbox.testCheckoutPlaced', {
+        count: testOrder.variables.quantity,
+        date: formatCalendarDate(testOrder.variables.date, language),
+      });
+    }
+  }
+
+  const placeTestOrder = () => {
+    if (!canPlaceTestOrder || !order.window || !order.location) return;
+    testOrder.mutate({
+      date: order.window.orderDate,
+      locationId: order.location.id,
+      quantity: order.quantity,
+    });
+  };
 
   return (
     <View style={styles.checkout}>
@@ -211,21 +239,23 @@ function Checkout() {
         <TotalRow label={t('lunchbox.total')} cents={order.totalCents} bold />
       </View>
       {/* Grayed out with the reason, and disabled until payment exists: an order is only
-          confirmed once the server verifies payment. */}
+          confirmed once the server verifies payment. The test checkout is the exception. */}
       <Pressable
-        disabled
+        onPress={placeTestOrder}
+        disabled={!canPlaceTestOrder}
         role="button"
-        aria-disabled
-        style={[
+        aria-disabled={!canPlaceTestOrder}
+        style={({ pressed }) => [
           styles.checkoutButton,
           ready
-            ? [styles.disabled, { backgroundColor: theme.primary }]
+            ? [!canPlaceTestOrder && styles.disabled, { backgroundColor: theme.primary }]
             : { backgroundColor: theme.backgroundSelected },
+          pressed && styles.pressed,
         ]}>
         <ThemedText
           type="smallBold"
           style={{ color: ready ? theme.onPrimary : theme.textSecondary }}>
-          {t('lunchbox.checkout')}
+          {testOrder.isPending ? t('lunchbox.placingTestOrder') : t('lunchbox.checkout')}
         </ThemedText>
       </Pressable>
       {note ? (
